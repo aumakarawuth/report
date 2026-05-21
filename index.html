@@ -1040,10 +1040,16 @@ body{font-family:'Sarabun',sans-serif;background:var(--surface);color:var(--ink)
     <div class="page-hd-title">สรุป <span>กำไร-ขาดทุน</span></div>
     <div class="page-hd-sub">คำนวณกำไรสุทธิหลังหักค่าใช้จ่ายทั้งหมด</div>
   </div>
+  <div id="snapshot-view" style="display:none"></div>
+<div id="summary-form-area">
   <div class="month-pill">
-    <div id="snapshot-view" style="display:none"></div>
-    <div id="summary-form-area">
     <button class="month-pill-nav" id="sum-month-prev">‹</button>
+    <div class="month-pill-center">
+      <div class="month-pill-lbl" id="sum-month-lbl"></div>
+      <div class="month-pill-sub" id="sum-month-sub"></div>
+    </div>
+    <button class="month-pill-nav" id="sum-month-next">›</button>
+  </div>
     <div class="month-pill-center">
       <div class="month-pill-lbl" id="sum-month-lbl"></div>
       <div class="month-pill-sub" id="sum-month-sub"></div>
@@ -1113,6 +1119,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--surface);color:var(--ink)
     <button class="export-btn export-pdf" onclick="exportPDF()"><span>📄</span> Export PDF</button>
   </div>
 </div>
+  </div> 
 
 <!-- ══ PAGE: SETTINGS ══ -->
 <div class="page" id="page-settings">
@@ -2948,6 +2955,23 @@ function _snapHd(txt) {
   // ลบ snapshot → render ฟอร์มปกติ
   try { localStorage.removeItem(_snapshotKey(sumMonthY, sumMonthM)); } catch(e) {}
   _renderNormalSummary();
+}
+
+
+  function _showNoSnapshotBanner() {
+  var existing = document.getElementById('no-snapshot-banner');
+  if (existing) return;
+  var banner = document.createElement('div');
+  banner.id = 'no-snapshot-banner';
+  banner.style.cssText = 'background:rgba(240,184,74,0.12);border:1.5px solid rgba(240,184,74,0.4);border-radius:14px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:10px;';
+  banner.innerHTML = '<span style="font-size:18px;">⚠️</span><div><div style="font-size:13px;font-weight:700;color:#B07800;">เดือนนี้ยังไม่ได้ปิดบัญชี</div><div style="font-size:12px;color:#8A6000;margin-top:2px;">กรอกค่าใช้จ่ายแล้วกด "คำนวณ" เพื่อบันทึก snapshot ค่ะ</div></div>';
+  var formArea = document.getElementById('summary-form-area');
+  if (formArea) formArea.insertBefore(banner, formArea.firstChild);
+}
+
+function _hideSnapshotBanner() {
+  var existing = document.getElementById('no-snapshot-banner');
+  if (existing) existing.remove();
 }
 // ══════════════════════════════
 // ── SETTINGS PAGE ──
