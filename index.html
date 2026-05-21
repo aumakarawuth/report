@@ -852,6 +852,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--surface);color:var(--ink)
     <div class="page-hd-sub" id="acct-sub">สรุปยอดแยกตามช่องทางการชำระ</div>
   </div>
   <div class="month-pill">
+    
     <button class="month-pill-nav" id="acct-month-prev">‹</button>
     <div class="month-pill-center">
       <div class="month-pill-lbl" id="acct-month-lbl"></div>
@@ -1040,6 +1041,8 @@ body{font-family:'Sarabun',sans-serif;background:var(--surface);color:var(--ink)
     <div class="page-hd-sub">คำนวณกำไรสุทธิหลังหักค่าใช้จ่ายทั้งหมด</div>
   </div>
   <div class="month-pill">
+    <div id="snapshot-view" style="display:none"></div>
+    <div id="summary-form-area">
     <button class="month-pill-nav" id="sum-month-prev">‹</button>
     <div class="month-pill-center">
       <div class="month-pill-lbl" id="sum-month-lbl"></div>
@@ -2625,6 +2628,50 @@ function _saveLocalExtraExpenses(y, m) {
   localStorage.setItem(_extraStorageKey(y, m), JSON.stringify(items));
 }
 
+
+  // ── snapshot เดือนที่ปิดแล้ว ──────────────────────────────
+function _snapshotKey(y, m) {
+  return 'nk_snapshot_' + y + '_' + String(m+1).padStart(2,'0');
+}
+
+function _saveMonthSnapshot(y, m) {
+  // เก็บ inputs ทั้งหมด + extra items ไว้ใน localStorage
+  var extraItems = [];
+  document.querySelectorAll('.extra-item').forEach(function(el) {
+    var name = (el.querySelector('.name-in')||{}).value || '';
+    var amt  = parseFloat((el.querySelector('.amt-in')||{}).value) || 0;
+    if (name || amt > 0) extraItems.push({ name: name, amt: amt });
+  });
+
+  var snap = {
+    rent:          getVal('exp-rent'),
+    serviceFee:    getVal('exp-service-fee'),
+    tax:           getVal('exp-tax'),
+    aircon:        getVal('exp-aircon'),
+    net:           getVal('exp-net'),
+    edc:           getVal('exp-edc', 430),
+    electric:      getVal('exp-electric', 0),
+    baseSalary:    getVal('exp-base-salary', 15000),
+    extraItems:    extraItems,
+    staffSelected: Object.keys(staffSelectionMap).filter(function(n){ return !!staffSelectionMap[n]; }),
+    savedAt:       Date.now()
+  };
+  try { localStorage.setItem(_snapshotKey(y, m), JSON.stringify(snap)); } catch(e) {}
+}
+
+function _loadMonthSnapshot(y, m) {
+  try {
+    var raw = localStorage.getItem(_snapshotKey(y, m));
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+  function _isPastMonth(y, m) {
+  var now = new Date();
+  return (y < now.getFullYear()) || (y === now.getFullYear() && m < now.getMonth());
+}
+
+
 function _loadLocalExtraExpenses(y, m) {
   document.querySelectorAll('.extra-item').forEach(function(el) { el.remove(); });
   var raw = localStorage.getItem(_extraStorageKey(y, m));
@@ -2658,7 +2705,27 @@ function _loadLocalExtraExpenses(y, m) {
   return true;
 }
 
+function _renderNormalSummary(){
+  var{start,end}=getMonthRange(sumMonthY,sumMonthM);
+  var svcR=ALL.filter(r=>isSvc(r)&&r.date>=start&&r.date<=end);
+  var memR=ALL.filter(r=>isMem(r)&&r.date>=start&&r.date<=end);
+  var cashSvcR=svcR.filter(r=>r.payment!=='Member');
+  var creditRev=(cashSvcR.filter(r=>r.payment==='Credit').reduce((s,r)=>s+r.price,0))+(memR.filter(r=>r.payment==='Credit').reduce((s,r)=>s+r.price,0));
+  var creditFee=Math.round(creditRev*CREDIT_FEE_RATE);
+  var netRevenue=cashSvcR.reduce((s,r)=>s+r.price,0)+memR.reduce((s,r)=>s+r.price,0)-creditFee;
+  document.getElementById('sum-period-lbl').textContent=`รายรับสุทธิ — ${TH_MONTHS[sumMonthM]} ${sumMonthY+543}`;
+  document.getElementById('sum-net-rev').textContent='฿'+netRevenue.toLocaleString();
+  document.getElementById('sum-rev-sub').textContent=`${svcR.length+memR.length} รายการ · ค่ารูดบัตร ฿${creditFee.toLocaleString()}`;
+  var fixedTotal=getVal('exp-rent')+getVal('exp-service-fee')+getVal('exp-tax')+getVal('exp-aircon')+getVal('exp-net')+getVal('exp-edc',486)+getVal('exp-electric',0);
+  document.getElementById('fixed-total-badge').textContent='฿'+fixedTotal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  renderStaffCheckboxes();
+  loadExtraExpensesFromSheet(sumMonthY, sumMonthM);
 
+  // แสดงฟอร์มปกติ ซ่อน snapshot view
+  document.getElementById('summary-form-area').style.display = 'block';
+  document.getElementById('snapshot-view').style.display     = 'none';
+}
+  
 
 function _updateExtraHeader(total) {
   var hd = document.querySelector('.extra-exp-hd-txt');
@@ -2683,26 +2750,30 @@ function _calcExtraTotal() {
 
 
 function renderSummaryPage(){
-  if(!dataLoaded)return;
-  const{start,end}=getMonthRange(sumMonthY,sumMonthM);
-  const svcR=ALL.filter(r=>isSvc(r)&&r.date>=start&&r.date<=end);
-  const memR=ALL.filter(r=>isMem(r)&&r.date>=start&&r.date<=end);
-  const cashSvcR=svcR.filter(r=>r.payment!=='Member');
-  const creditRev=(cashSvcR.filter(r=>r.payment==='Credit').reduce((s,r)=>s+r.price,0))+(memR.filter(r=>r.payment==='Credit').reduce((s,r)=>s+r.price,0));
-  const creditFee=Math.round(creditRev*CREDIT_FEE_RATE);
-  const netRevenue=cashSvcR.reduce((s,r)=>s+r.price,0)+memR.reduce((s,r)=>s+r.price,0)-creditFee;
-  document.getElementById('sum-period-lbl').textContent=`รายรับสุทธิ — ${TH_MONTHS[sumMonthM]} ${sumMonthY+543}`;
-  document.getElementById('sum-net-rev').textContent='฿'+netRevenue.toLocaleString();
-  document.getElementById('sum-rev-sub').textContent=`${svcR.length+memR.length} รายการ · ค่ารูดบัตร ฿${creditFee.toLocaleString()}`;
-  const fixedTotal=getVal('exp-rent')+getVal('exp-service-fee')+getVal('exp-tax')+getVal('exp-aircon')+getVal('exp-net')+getVal('exp-edc')+getVal('exp-electric',0);
-  document.getElementById('fixed-total-badge').textContent='฿'+fixedTotal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
-  renderStaffCheckboxes();
+  if(!dataLoaded) return;
+  updateSumMonthPill();
 
-  loadExtraExpensesFromSheet(sumMonthY, sumMonthM);
+  var isPast = _isPastMonth(sumMonthY, sumMonthM);
+  var snap   = isPast ? _loadMonthSnapshot(sumMonthY, sumMonthM) : null;
+
+  if (isPast && snap) {
+    // ── READ-ONLY MODE: แสดงสรุปเดือนปิดแล้ว ──
+    _renderSnapshotView(snap);
+  } else if (isPast && !snap) {
+    // ── เดือนเก่าแต่ยังไม่เคย snapshot → แสดงฟอร์มปกติแต่มี banner เตือน ──
+    _renderNormalSummary();
+    _showNoSnapshotBanner();
+  } else {
+    // ── เดือนปัจจุบัน: ฟอร์มปกติ ──
+    _renderNormalSummary();
+    _hideSnapshotBanner();
+  }
 }
 
 function calculateSummary() {
-  _saveLocalExtraExpenses(sumMonthY, sumMonthM); // save ก่อนเสมอ
+  _saveLocalExtraExpenses(sumMonthY, sumMonthM);
+  // snapshot สำหรับ read-only เดือนถัดไป — save ทุกครั้งที่คำนวณ
+  _saveMonthSnapshot(sumMonthY, sumMonthM);
   if(!dataLoaded){alert('กรุณารอโหลดข้อมูลก่อน');return;}
   const{start,end}=getMonthRange(sumMonthY,sumMonthM);
   const svcR=ALL.filter(r=>isSvc(r)&&r.date>=start&&r.date<=end);
@@ -2753,6 +2824,131 @@ function calculateSummary() {
 function addExtraExpense(){const id=Date.now();const div=document.createElement('div');div.className='extra-item';div.id='extra-'+id;div.innerHTML=`<input class="name-in" type="text" placeholder="ชื่อค่าใช้จ่าย..."><input class="amt-in" type="number" placeholder="0" min="0" step="0.01"><button class="del-btn" onclick="removeExtra(${id})">✕</button>`;document.getElementById('extra-expense-list').appendChild(div);}
 function removeExtra(id){const el=document.getElementById('extra-'+id);if(el)el.remove();}
 
+
+  function _renderSnapshotView(snap) {
+  // ซ่อนฟอร์ม แสดง snapshot
+  document.getElementById('summary-form-area').style.display = 'none';
+  document.getElementById('snapshot-view').style.display     = 'block';
+
+  // คำนวณจาก archive data + snapshot
+  var{start,end}=getMonthRange(sumMonthY,sumMonthM);
+  var svcR=ALL.filter(r=>isSvc(r)&&r.date>=start&&r.date<=end);
+  var memR=ALL.filter(r=>isMem(r)&&r.date>=start&&r.date<=end);
+  var cashSvcR=svcR.filter(r=>r.payment!=='Member');
+  var creditRev=(cashSvcR.filter(r=>r.payment==='Credit').reduce((s,r)=>s+r.price,0))
+               +(memR.filter(r=>r.payment==='Credit').reduce((s,r)=>s+r.price,0));
+  var creditFee=Math.round(creditRev*CREDIT_FEE_RATE);
+  var netRevenue=cashSvcR.reduce((s,r)=>s+r.price,0)+memR.reduce((s,r)=>s+r.price,0)-creditFee;
+
+  var fixedTotal = snap.rent + snap.serviceFee + snap.tax + snap.aircon
+                 + snap.net + (snap.edc||430) + (snap.electric||0);
+  var extraTotal = (snap.extraItems||[]).reduce(function(s,i){ return s+i.amt; }, 0);
+
+  // คำนวณค่าพนักงาน
+  var staffDataLocal = {};
+  svcR.forEach(function(r){
+    if(!staffDataLocal[r.staffName]) staffDataLocal[r.staffName]={commFloat:0,revenue:0,count:0};
+    staffDataLocal[r.staffName].commFloat += commFloat(r.service,r.price);
+    staffDataLocal[r.staffName].revenue   += r.price;
+    staffDataLocal[r.staffName].count++;
+  });
+  var memSumLocal = getMemSummaryForRange(start,end);
+  var selectedNames = snap.staffSelected || Object.keys(staffDataLocal);
+  var staffCount    = selectedNames.length;
+  var totalSalary   = snap.baseSalary * staffCount;
+  var totalCommSvc  = Math.round(selectedNames.reduce(function(s,n){ return s+(staffDataLocal[n]?staffDataLocal[n].commFloat:0); },0));
+  var totalCommMem  = memSumLocal.comm * staffCount;
+  var totalStaff    = totalSalary + totalCommSvc + totalCommMem;
+  var totalExpense  = fixedTotal + totalStaff + extraTotal;
+  var netProfit     = netRevenue - totalExpense;
+  var isProfit      = netProfit >= 0;
+
+  var pLabel = TH_MONTHS[sumMonthM] + ' ' + (sumMonthY+543);
+  var fmt = function(v){ return Math.abs(v).toLocaleString('th-TH',{minimumFractionDigits:0,maximumFractionDigits:0}); };
+  var savedDate = snap.savedAt ? new Date(snap.savedAt).toLocaleDateString('th-TH') : '-';
+
+  document.getElementById('snapshot-view').innerHTML = `
+    <!-- badge ปิดบัญชีแล้ว -->
+    <div style="display:flex;align-items:center;gap:10px;background:#1A1025;border-radius:16px;padding:14px 18px;margin-bottom:16px;">
+      <span style="font-size:20px;">🔒</span>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#fff;">${pLabel} — ปิดบัญชีแล้ว</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.45);">บันทึกเมื่อ ${savedDate} · อ่านอย่างเดียว</div>
+      </div>
+      <button onclick="unlockSnapshot()" style="margin-left:auto;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);border-radius:10px;padding:8px 14px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">แก้ไข</button>
+    </div>
+
+    <!-- ผลลัพธ์หลัก -->
+    <div class="summary-result-card">
+      <div class="result-hd" style="background:${isProfit?'linear-gradient(135deg,#064E3B,#065F46)':'linear-gradient(135deg,#1A1025,#3D2D4A)'}">
+        <div class="result-hd-lbl">กำไร / ขาดทุนสุทธิ — ${pLabel}</div>
+        <div class="result-hd-val ${isProfit?'profit':'loss'}">${isProfit?'+':'-'}฿${fmt(netProfit)}</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:6px;">
+          อัตรากำไร ${netRevenue>0?(netProfit/netRevenue*100).toFixed(1):0}%
+          · ${isProfit?'✅ มีกำไร':'🔴 ขาดทุน'}
+        </div>
+      </div>
+
+      <!-- แถว summary -->
+      <div class="result-rows">
+        ${_snapRow('💸 รายรับสุทธิ', 'หักค่ารูดบัตร ฿'+fmt(creditFee), '฿'+fmt(netRevenue), 'val-income')}
+        ${_snapHd('ค่าใช้จ่าย Fixed')}
+        ${_snapRow('ค่าเช่า', '', '฿'+fmt(snap.rent), 'val-expense')}
+        ${_snapRow('ค่าบริการ', '', '฿'+fmt(snap.serviceFee), 'val-expense')}
+        ${_snapRow('ภาษี', '', '฿'+fmt(snap.tax), 'val-expense')}
+        ${_snapRow('ไอเย็น', '', '฿'+fmt(snap.aircon), 'val-expense')}
+        ${_snapRow('เน็ต+โทร', '', '฿'+fmt(snap.net), 'val-expense')}
+        ${_snapRow('EDC', '', '฿'+fmt(snap.edc||430), 'val-expense')}
+        ${snap.electric>0?_snapRow('ค่าไฟ','','฿'+fmt(snap.electric),'val-expense'):''}
+        ${_snapRow('รวม Fixed','','฿'+fmt(fixedTotal),'val-expense')}
+        ${_snapHd('ค่าพนักงาน ('+staffCount+' คน)')}
+        ${_snapRow('เงินเดือน', staffCount+' × ฿'+fmt(snap.baseSalary), '฿'+fmt(totalSalary), 'val-expense')}
+        ${_snapRow('ค่าคอมบริการ', '', '฿'+fmt(totalCommSvc), 'val-expense')}
+        ${_snapRow('ค่าคอมเมม', '', '฿'+fmt(totalCommMem), 'val-expense')}
+        ${_snapRow('รวมพนักงาน','','฿'+fmt(totalStaff),'val-expense')}
+        ${(snap.extraItems||[]).length>0?_snapHd('ค่าใช้จ่ายเพิ่มเติม'):''}
+        ${(snap.extraItems||[]).map(function(i){return _snapRow(i.name,'','฿'+fmt(i.amt),'val-expense');}).join('')}
+        ${(snap.extraItems||[]).length>0?_snapRow('รวมเพิ่มเติม','','฿'+fmt(extraTotal),'val-expense'):''}
+
+        <!-- บรรทัดสุดท้าย -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;
+          background:${isProfit?'rgba(45,203,142,0.07)':'rgba(255,107,157,0.07)'};
+          border-top:2px solid ${isProfit?'rgba(45,203,142,0.3)':'rgba(255,107,157,0.3)'}">
+          <div style="font-size:16px;font-weight:700;">รายรับ ฿${fmt(netRevenue)} − รายจ่าย ฿${fmt(totalExpense)}</div>
+          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:${isProfit?'var(--green)':'var(--rose-deep)'}">
+            ${isProfit?'+':'-'}฿${fmt(netProfit)}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ปุ่ม export -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+      <button onclick="_exportSnapExcel()" style="padding:16px;border-radius:14px;border:1.5px solid rgba(33,115,70,0.3);background:rgba(33,115,70,0.08);color:#217346;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">📊 Export Excel</button>
+      <button onclick="_exportSnapPDF()" style="padding:16px;border-radius:14px;border:1.5px solid rgba(232,69,122,0.3);background:rgba(232,69,122,0.08);color:var(--rose-deep);font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">📄 Export PDF</button>
+    </div>`;
+
+  // เก็บไว้สำหรับ export
+  window._currentSnap = { snap, netRevenue, creditFee, fixedTotal, extraTotal, totalSalary,
+    totalCommSvc, totalCommMem, totalStaff, totalExpense, netProfit, isProfit,
+    staffCount, selectedNames, pLabel, staffDataLocal };
+}
+
+// helper สร้าง row
+function _snapRow(lbl, sub, val, cls) {
+  return '<div class="result-row"><div class="result-row-lbl">'+lbl+(sub?'<small>'+sub+'</small>':'')+'</div><div class="result-row-val '+cls+'">'+val+'</div></div>';
+}
+function _snapHd(txt) {
+  return '<div style="padding:8px 22px 4px;background:var(--surface-2);font-size:11px;font-weight:700;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.6px;">'+txt+'</div>';
+}
+
+
+  function unlockSnapshot() {
+  if (!confirm('ต้องการแก้ไขข้อมูลเดือนนี้?\nการแก้ไขจะ override ผลเดิม')) return;
+  // ลบ snapshot → render ฟอร์มปกติ
+  try { localStorage.removeItem(_snapshotKey(sumMonthY, sumMonthM)); } catch(e) {}
+  _renderNormalSummary();
+}
 // ══════════════════════════════
 // ── SETTINGS PAGE ──
 // ══════════════════════════════
@@ -5033,6 +5229,34 @@ function _renderSheetItems(byCategory) {
 }
 
 
+
+
+  function _exportSnapExcel() {
+  if (!window._currentSnap) return;
+  var s = window._currentSnap;
+  lastCalcResult = {
+    netRevenue: s.netRevenue, creditFee: s.creditFee,
+    fixedTotal: s.fixedTotal, totalStaffCost: s.totalStaff,
+    extraTotal: s.extraTotal, totalExpense: s.totalExpense,
+    netProfit:  s.netProfit,  staffCount:   s.staffCount,
+    selectedNames: s.selectedNames, totalSalary: s.totalSalary,
+    totalCommSvc:  s.totalCommSvc,  totalCommMem: s.totalCommMem,
+    baseSalary: s.snap.baseSalary,  extraItems:  s.snap.extraItems||[],
+    expRent: s.snap.rent, expSvcFee: s.snap.serviceFee,
+    expTax:  s.snap.tax,  expAircon: s.snap.aircon,
+    expNet:  s.snap.net,  expEdc:    s.snap.edc||430,
+    expElectric: s.snap.electric||0,
+    pLbl: s.pLabel, staffDataMap: s.staffDataLocal
+  };
+  exportExcel();
+}
+function _exportSnapPDF() {
+  if (!window._currentSnap) return;
+  _exportSnapExcel(); // set lastCalcResult ก่อน
+  exportPDF();
+}
+
+  
 
 
 function loadExtraExpensesFromSheet(y, m) {
