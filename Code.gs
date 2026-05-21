@@ -2303,24 +2303,32 @@ function getArchivedMonths() {
   var sheets = ss.getSheets();
   var result = [];
 
+  var thMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน',
+    'พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม',
+    'กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
   sheets.forEach(function(sheet) {
     var name = sheet.getName();
-    // จับ pattern "รายการ_เดือน_ปี"
     var match = name.match(/^รายการ_(.+)_(\d{4})$/);
     if (match) {
+      var monthName = match[1];
+      var yearBE    = parseInt(match[2]);
+      var yearCE    = yearBE > 2500 ? yearBE - 543 : yearBE;
+      var monthIdx  = thMonths.indexOf(monthName); // 0-based
+
       result.push({
-        name:  name,
-        label: match[1] + ' ' + match[2],
-        month: match[1],
-        year:  match[2]
+        name:      name,
+        label:     monthName + ' ' + yearBE,
+        month:     monthName,
+        year:      String(yearBE),
+        // ── เพิ่ม key นี้ ──
+        yearMonth: yearCE + '-' + String(monthIdx + 1).padStart(2, '0')
+        // เช่น "2025-03" สำหรับมีนาคม 2568
       });
     }
   });
 
   // เรียงล่าสุดก่อน
-  var thMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน',
-    'พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม',
-    'กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
   result.sort(function(a, b) {
     var ya = parseInt(a.year), yb = parseInt(b.year);
     if (ya !== yb) return yb - ya;
