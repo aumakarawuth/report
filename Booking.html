@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nail Kloset — จองนัด</title>
+
+<!-- LINE LIFF SDK -->
+<script src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --pink:       #E8457A;
+    --pink-light: #FFE4EE;
+    --pink-soft:  #FFF0F6;
+    --gold:       #C9A96E;
+    --dark:       #1A0A12;
+    --text:       #3D1A28;
+    --muted:      #9B7A88;
+    --white:      #FFFAF9;
+    --surface:    #FFF5F8;
+    --border:     #F0D8E2;
+    --green:      #1B8A5A;
+    --green-bg:   #D6F5E8;
+    --radius:     16px;
+    --radius-sm:  10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--white);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── HEADER ─────────────────────────── */
+  .header {
+    background: linear-gradient(145deg, #1A0A12 0%, #3D1020 60%, #5C1A35 100%);
+    padding: 24px 20px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(232,69,122,0.25) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -20px; left: 30px;
+    width: 100px; height: 100px;
+    background: radial-gradient(circle, rgba(201,169,110,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .logo-area { position: relative; z-index: 1; }
+  .logo-en {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: #fff;
+    letter-spacing: 1px;
+  }
+  .logo-sub {
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .user-pill {
+    margin-top: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 50px;
+    padding: 6px 14px 6px 8px;
+  }
+  .user-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--pink);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    overflow: hidden;
+  }
+  .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .user-name { font-size: 13px; color: rgba(255,255,255,0.9); font-weight: 500; }
+  .member-badge {
+    background: linear-gradient(135deg, var(--gold), #E8C47A);
+    color: var(--dark);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 50px;
+    letter-spacing: 1px;
+  }
+
+  /* ─── STEP INDICATOR ─────────────────── */
+  .steps-bar {
+    background: var(--surface);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .steps-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .step-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+  }
+  .step-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 13px;
+    left: 60%;
+    width: 80%;
+    height: 2px;
+    background: var(--border);
+    z-index: 0;
+    transition: background 0.4s;
+  }
+  .step-item.done:not(:last-child)::after { background: var(--pink); }
+  .step-dot {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; z-index: 1;
+    transition: all 0.3s;
+  }
+  .step-item.active .step-dot {
+    background: var(--pink);
+    color: #fff;
+    box-shadow: 0 0 0 4px var(--pink-light);
+  }
+  .step-item.done .step-dot {
+    background: var(--pink);
+    color: #fff;
+  }
+  .step-label {
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .step-item.active .step-label { color: var(--pink); font-weight: 600; }
+  .step-item.done .step-label { color: var(--text); }
+
+  /* ─── CONTENT ─────────────────────────── */
+  .content { padding: 20px; }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--dark);
+    margin-bottom: 4px;
+  }
+  .section-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+
+  /* ─── SERVICE CARD ─────────────────────── */
+  .service-card {
+    background: #fff;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .service-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: transparent;
+    transition: background 0.2s;
+    border-radius: 4px 0 0 4px;
+  }
+  .service-card.selected {
+    border-color: var(--pink);
+    background: var(--pink-soft);
+  }
+  .service-card.selected::before { background: var(--pink); }
+  .service-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--pink-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .service-info { flex: 1; }
+  .service-name { font-size: 14px; font-weight: 600; color: var(--dark); }
+  .service-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .service-price {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--pink);
+    text-align: right;
+  }
+  .service-price small {
+    display: block;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .check-mark {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 20px; height: 20px;
+    background: var(--pink);
+    border-radius: 50%;
+    display: none;
+    align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 11px;
+  }
+  .service-card.selected .check-mark { display: flex; }
+
+  /* ─── STAFF GRID ─────────────────────── */
+  .staff-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .staff-card {
+    background: #fff;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    position: relative;
+  }
+  .staff-card.selected {
+    border-color: var(--pink);
+    background: var(--pink-soft);
+  }
+  .staff-avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--pink), #C9356A);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    margin: 0 auto 10px;
+    color: #fff;
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+  }
+  .staff-name { font-size: 14px; font-weight: 600; color: var(--dark); }
+  .staff-role { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .staff-card.selected .check-mark { display: flex; top: 8px; right: 8px; width: 18px; height: 18px; font-size: 10px; }
+
+  /* ─── CALENDAR ─────────────────────────── */
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .cal-nav {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+  .cal-nav:hover { border-color: var(--pink); color: var(--pink); }
+  .cal-month {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--dark);
+  }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 20px;
+  }
+  .cal-day-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    padding: 6px 0;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    color: var(--text);
+    border: 1.5px solid transparent;
+  }
+  .cal-day:hover:not(.disabled):not(.empty) {
+    border-color: var(--pink);
+    color: var(--pink);
+  }
+  .cal-day.today { font-weight: 700; color: var(--pink); }
+  .cal-day.selected {
+    background: var(--pink);
+    color: #fff;
+    border-color: var(--pink);
+  }
+  .cal-day.disabled { color: #ddd; cursor: not-allowed; }
+  .cal-day.empty { cursor: default; }
+
+  /* Time Slots */
+  .time-section { margin-bottom: 16px; }
+  .time-section-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .time-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .time-slot {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 6px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .time-slot:hover { border-color: var(--pink); color: var(--pink); }
+  .time-slot.selected {
+    background: var(--pink);
+    border-color: var(--pink);
+    color: #fff;
+  }
+  .time-slot.unavailable {
+    background: var(--surface);
+    color: #ccc;
+    cursor: not-allowed;
+  }
+
+  /* ─── SUMMARY ─────────────────────────── */
+  .summary-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .summary-header {
+    background: linear-gradient(135deg, var(--dark), #3D1020);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .summary-header-icon { font-size: 20px; }
+  .summary-header-text { color: #fff; }
+  .summary-header-title { font-family: 'Playfair Display', serif; font-size: 16px; }
+  .summary-header-sub { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+  .summary-body { padding: 18px; }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--surface);
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-label { font-size: 12px; color: var(--muted); }
+  .summary-value { font-size: 14px; font-weight: 600; color: var(--dark); text-align: right; max-width: 60%; }
+  .summary-price-big {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--pink);
+    font-family: 'Playfair Display', serif;
+  }
+
+  /* ─── MEMBER BOX ─────────────────────── */
+  .member-box {
+    background: var(--green-bg);
+    border: 1.5px solid #A8E6CD;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .member-box-icon {
+    width: 40px; height: 40px;
+    background: var(--green);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .member-box-info { flex: 1; }
+  .member-box-name { font-weight: 600; font-size: 14px; color: #0A5A3A; }
+  .member-box-balance { font-size: 12px; color: var(--green); margin-top: 2px; }
+  .member-box-phone { font-size: 11px; color: var(--muted); }
+
+  /* Non-member box */
+  .nonmember-box {
+    background: var(--pink-soft);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .nonmember-box p { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .link-member-btn {
+    font-size: 13px;
+    color: var(--pink);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  /* ─── BUTTONS ─────────────────────────── */
+  .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, var(--pink), #C9356A);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 16px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(232,69,122,0.35);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(232,69,122,0.4); }
+  .btn-primary:disabled { opacity: 0.5; transform: none; box-shadow: none; cursor: not-allowed; }
+  .btn-secondary {
+    width: 100%;
+    background: transparent;
+    color: var(--pink);
+    border: 1.5px solid var(--pink);
+    border-radius: 50px;
+    padding: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { background: var(--pink-soft); }
+
+  .bottom-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #fff;
+    border-top: 1px solid var(--border);
+    padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+    z-index: 100;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .bottom-summary {
+    flex: 1;
+  }
+  .bottom-service-name { font-size: 12px; color: var(--muted); }
+  .bottom-price { font-size: 16px; font-weight: 700; color: var(--pink); }
+  .bottom-next-btn {
+    background: linear-gradient(135deg, var(--pink), #C9356A);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 28px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(232,69,122,0.35);
+  }
+  .bottom-next-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+  /* ─── PAGES ─────────────────────────── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ─── LOADING / SUCCESS ─────────────── */
+  .loading-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--white);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+  .loading-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    color: var(--dark);
+    margin-bottom: 8px;
+  }
+  .loading-logo span { color: var(--pink); }
+  .loading-sub { font-size: 12px; color: var(--muted); letter-spacing: 2px; margin-bottom: 30px; }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--pink);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .success-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--white);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    z-index: 998;
+    text-align: center;
+    display: none;
+  }
+  .success-icon {
+    width: 80px; height: 80px;
+    background: var(--green-bg);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+    margin-bottom: 20px;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  @keyframes popIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .success-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: var(--dark);
+    margin-bottom: 8px;
+  }
+  .success-sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+  .success-detail {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    width: 100%;
+    margin-bottom: 24px;
+    text-align: left;
+  }
+  .success-detail-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+  .success-detail-label { color: var(--muted); }
+  .success-detail-value { font-weight: 600; color: var(--dark); }
+
+  /* ─── PHONE INPUT ─────────────────────── */
+  .phone-input-section {
+    background: var(--pink-soft);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .phone-label { font-size: 13px; font-weight: 600; color: var(--dark); margin-bottom: 8px; }
+  .phone-input-row { display: flex; gap: 8px; }
+  .phone-input {
+    flex: 1;
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 16px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--dark);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .phone-input:focus { border-color: var(--pink); }
+  .phone-btn {
+    background: var(--pink);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .phone-hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  /* ─── NOTE TEXTAREA ─────────────────── */
+  .note-area {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--dark);
+    width: 100%;
+    resize: none;
+    outline: none;
+    height: 80px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .note-area:focus { border-color: var(--pink); }
+
+  /* ─── SCROLL PADDING ─────────────────── */
+  .scroll-pad { height: 80px; }
+
+  /* Fade animation */
+  .fade-in {
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .tag {
+    display: inline-block;
+    background: var(--pink-light);
+    color: var(--pink);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 50px;
+    margin-bottom: 16px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-logo">Nail <span>Kloset</span></div>
+  <div class="loading-sub">THE CRYSTAL RATCHAPRUEK</div>
+  <div class="spinner"></div>
+</div>
+
+<!-- Success Screen -->
+<div class="success-screen" id="successScreen">
+  <div class="success-icon">✨</div>
+  <div class="success-title">จองนัดสำเร็จ!</div>
+  <div class="success-sub">ระบบได้รับการจองของคุณแล้วค่ะ<br>เราจะรอต้อนรับคุณนะคะ 💕</div>
+  <div class="success-detail" id="successDetail"></div>
+  <div style="font-size: 12px; color: var(--muted); margin-bottom: 24px;">
+    ⚠️ กรุณาแคนเซิลก่อนกำหนดหากไม่สะดวกนะคะ
+  </div>
+  <button class="btn-primary" onclick="closeWindow()">ปิดหน้าต่าง</button>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo-area">
+    <div class="logo-en">Nail Kloset</div>
+    <div class="logo-sub">The Crystal Ratchapruek</div>
+    <div class="user-pill" id="userPill" style="display:none">
+      <div class="user-avatar" id="userAvatar">💅</div>
+      <div class="user-name" id="userName">Loading...</div>
+      <div class="member-badge" id="memberBadge" style="display:none">MEMBER</div>
+    </div>
+  </div>
+</div>
+
+<!-- Step Indicator -->
+<div class="steps-bar">
+  <div class="steps-row">
+    <div class="step-item active" id="step-1">
+      <div class="step-dot">1</div>
+      <div class="step-label">บริการ</div>
+    </div>
+    <div class="step-item" id="step-2">
+      <div class="step-dot">2</div>
+      <div class="step-label">พนักงาน</div>
+    </div>
+    <div class="step-item" id="step-3">
+      <div class="step-dot">3</div>
+      <div class="step-label">วัน-เวลา</div>
+    </div>
+    <div class="step-item" id="step-4">
+      <div class="step-dot">4</div>
+      <div class="step-label">ยืนยัน</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── PAGE 1: SELECT SERVICE ─────────────────────────── -->
+<div class="page active fade-in" id="page1">
+  <div class="content">
+    <div class="tag">💅 เลือกบริการ</div>
+    <div class="section-title">คุณต้องการบริการอะไรคะ?</div>
+    <div class="section-sub">เลือกได้ 1 บริการต่อการจอง</div>
+
+    <div id="serviceList"></div>
+    <div class="scroll-pad"></div>
+  </div>
+  <div class="bottom-bar">
+    <div class="bottom-summary">
+      <div class="bottom-service-name" id="selectedServiceName">เลือกบริการก่อนนะคะ</div>
+      <div class="bottom-price" id="selectedServicePrice">—</div>
+    </div>
+    <button class="bottom-next-btn" id="nextBtn1" onclick="goToStep(2)" disabled>ถัดไป →</button>
+  </div>
+</div>
+
+<!-- ─── PAGE 2: SELECT STAFF ──────────────────────────── -->
+<div class="page fade-in" id="page2">
+  <div class="content">
+    <div class="tag">💇‍♀️ เลือกพนักงาน</div>
+    <div class="section-title">ต้องการให้ใครดูแลคะ?</div>
+    <div class="section-sub">เลือกพนักงานที่ต้องการ หรือ "ไม่ระบุ"</div>
+
+    <div class="staff-grid" id="staffGrid"></div>
+    <div class="scroll-pad"></div>
+  </div>
+  <div class="bottom-bar">
+    <button class="btn-secondary" onclick="goToStep(1)" style="max-width:80px; padding: 14px 0; font-size:20px; border-radius:50px;">←</button>
+    <button class="bottom-next-btn" id="nextBtn2" onclick="goToStep(3)" disabled>ถัดไป →</button>
+  </div>
+</div>
+
+<!-- ─── PAGE 3: SELECT DATE & TIME ────────────────────── -->
+<div class="page fade-in" id="page3">
+  <div class="content">
+    <div class="tag">📅 เลือกวันและเวลา</div>
+    <div class="section-title">นัดหมายวันไหนดีคะ?</div>
+    <div class="section-sub">เวลาในระบบ GMT+7</div>
+
+    <!-- Calendar -->
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+      <div class="cal-month" id="calMonth">—</div>
+      <button class="cal-nav" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+
+    <!-- Time slots -->
+    <div id="timeSlotsArea" style="display:none">
+      <div class="time-section">
+        <div class="time-section-label">🌅 เช้า</div>
+        <div class="time-grid" id="morningSlots"></div>
+      </div>
+      <div class="time-section">
+        <div class="time-section-label">🌤 บ่าย</div>
+        <div class="time-grid" id="afternoonSlots"></div>
+      </div>
+      <div class="time-section">
+        <div class="time-section-label">🌆 เย็น</div>
+        <div class="time-grid" id="eveningSlots"></div>
+      </div>
+    </div>
+    <div id="noDateSelected" style="text-align:center; padding: 30px 0; color: var(--muted); font-size:14px;">
+      👆 เลือกวันที่ต้องการก่อนนะคะ
+    </div>
+    <div class="scroll-pad"></div>
+  </div>
+  <div class="bottom-bar">
+    <button class="btn-secondary" onclick="goToStep(2)" style="max-width:80px; padding: 14px 0; font-size:20px; border-radius:50px;">←</button>
+    <button class="bottom-next-btn" id="nextBtn3" onclick="goToStep(4)" disabled>ถัดไป →</button>
+  </div>
+</div>
+
+<!-- ─── PAGE 4: CONFIRM ───────────────────────────────── -->
+<div class="page fade-in" id="page4">
+  <div class="content">
+    <div class="tag">✅ ยืนยันการจอง</div>
+    <div class="section-title">ตรวจสอบข้อมูลการจอง</div>
+    <div class="section-sub">กรุณาตรวจสอบให้ถูกต้องก่อนยืนยันค่ะ</div>
+
+    <!-- Member / Non-member info -->
+    <div id="memberInfoArea"></div>
+
+    <!-- Summary card -->
+    <div class="summary-card">
+      <div class="summary-header">
+        <div class="summary-header-icon">💅</div>
+        <div class="summary-header-text">
+          <div class="summary-header-title">Nail Kloset</div>
+          <div class="summary-header-sub">The Crystal Ratchapruek</div>
+        </div>
+      </div>
+      <div class="summary-body">
+        <div class="summary-row">
+          <div class="summary-label">บริการ</div>
+          <div class="summary-value" id="confirmService">—</div>
+        </div>
+        <div class="summary-row">
+          <div class="summary-label">พนักงาน</div>
+          <div class="summary-value" id="confirmStaff">—</div>
+        </div>
+        <div class="summary-row">
+          <div class="summary-label">วันที่</div>
+          <div class="summary-value" id="confirmDate">—</div>
+        </div>
+        <div class="summary-row">
+          <div class="summary-label">เวลา</div>
+          <div class="summary-value" id="confirmTime">—</div>
+        </div>
+        <div class="summary-row">
+          <div class="summary-label">ระยะเวลา</div>
+          <div class="summary-value" id="confirmDuration">—</div>
+        </div>
+        <div class="summary-row">
+          <div class="summary-label">ราคาประมาณ</div>
+          <div class="summary-value">
+            <div class="summary-price-big" id="confirmPrice">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Note -->
+    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--dark);">
+      📝 หมายเหตุ (ถ้ามี)
+    </div>
+    <textarea class="note-area" id="noteInput" placeholder="เช่น รูปแบบที่ต้องการ, สีที่ชอบ, แพ้สารใด..."></textarea>
+
+    <!-- Cancel policy -->
+    <div style="background: #FFF8E6; border: 1px solid #FFD98E; border-radius: var(--radius); padding: 14px; margin-bottom: 16px;">
+      <div style="font-size: 12px; font-weight: 700; color: #9A6B00; margin-bottom: 6px;">⚠️ นโยบายการยกเลิก</div>
+      <div style="font-size: 12px; color: #7A5500; line-height: 1.6;">
+        กรุณาแจ้งยกเลิกหรือเลื่อนนัดล่วงหน้าอย่างน้อย <strong>2 ชั่วโมง</strong><br>
+        เพื่อไม่เสียสิทธิ์การจองในครั้งต่อไปค่ะ
+      </div>
+    </div>
+
+    <button class="btn-primary" id="confirmBtn" onclick="submitBooking()">
+      💕 ยืนยันการจองนัด
+    </button>
+    <div style="height: 10px;"></div>
+    <button class="btn-secondary" onclick="goToStep(3)">← แก้ไข</button>
+    <div class="scroll-pad"></div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ─────────────────────────────────────────────────
+// *** เปลี่ยน LIFF_ID และ GAS_URL ให้ตรงกับของคุณ ***
+const LIFF_ID  = 'YOUR_LIFF_ID_HERE';
+const GAS_URL  = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+
+// ─── SERVICES DATA ───────────────────────────────────────────
+const SERVICES = [
+  { id: 'biab_french',    name: 'BIAB with French Tip',   icon: '🌸', price: '฿46',      duration: 50,  priceNum: 46   },
+  { id: 'biab_fullset',   name: 'BIAB Full Set',           icon: '💅', price: 'ราคาแตกต่างตามสี', duration: 45,  priceNum: null  },
+  { id: 'biab_gel',       name: 'BIAB Full Set + Gel',     icon: '✨', price: '฿46',      duration: 40,  priceNum: 46   },
+  { id: 'biab_infill',    name: 'BIAB Infill',             icon: '🔮', price: 'ราคาแตกต่างตามสี', duration: 40,  priceNum: null  },
+  { id: 'gel_plain',      name: 'Full Set Plain Gel',      icon: '💗', price: 'ราคาแตกต่างตามสี', duration: 40,  priceNum: null  },
+  { id: 'gel_art',        name: 'Full Set + Nail Art',     icon: '🎨', price: 'เริ่ม ฿50', duration: 80,  priceNum: 50   },
+  { id: 'gel_white',      name: 'Full Set White Tip',      icon: '🤍', price: 'ราคาแตกต่างตามสี', duration: 40,  priceNum: null  },
+  { id: 'acrylic_gel',    name: 'Infill Acrylic + Gel',    icon: '💠', price: '฿35',      duration: 40,  priceNum: 35   },
+  { id: 'lux_pedicure',   name: 'Lux Pedicure',            icon: '🦶', price: 'ราคาแตกต่างตามบริการ', duration: 60,  priceNum: null  },
+  { id: 'biab_pedicure',  name: 'BIAB Infill + Lux Pedicure', icon: '💎', price: '฿79',  duration: 80,  priceNum: 79   },
+  { id: 'spa_hand',       name: 'Spa มือ',                 icon: '🙌', price: 'ราคาแตกต่างตามบริการ', duration: 30,  priceNum: null  },
+  { id: 'eyelash',        name: 'ต่อขนตา',                 icon: '👁', price: 'ราคาแตกต่างตามสไตล์', duration: 90,  priceNum: null  },
+];
+
+// ─── STAFF DATA ──────────────────────────────────────────────
+const STAFF = [
+  { id: 'any',   name: 'ไม่ระบุ',  role: 'พนักงานที่ว่าง',     initial: '∞' },
+  { id: 'alex',  name: 'Alex',     role: 'ช่างเล็บ',            initial: 'Al' },
+  { id: 'billy', name: 'Billy',    role: 'ช่างเล็บ',            initial: 'Bi' },
+  { id: 'chloe', name: 'Chloe',    role: 'ช่างเล็บ',            initial: 'Ch' },
+  { id: 'danny', name: 'Danny',    role: 'ช่างเล็บ',            initial: 'Da' },
+  { id: 'ivy',   name: 'Ivy',      role: 'ช่างเล็บ',            initial: 'Iv' },
+];
+
+// ─── BOOKING STATE ───────────────────────────────────────────
+const state = {
+  selectedService: null,
+  selectedStaff:   null,
+  selectedDate:    null,
+  selectedTime:    null,
+  currentMonth:    new Date(),
+  lineUserId:      null,
+  lineDisplayName: null,
+  linePictureUrl:  null,
+  member:          null,   // { phone, name, balance, memberCode }
+  phoneInput:      null,
+};
+
+// ─── INIT LIFF ───────────────────────────────────────────────
+async function initLiff() {
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+    const profile = await liff.getProfile();
+    state.lineUserId      = profile.userId;
+    state.lineDisplayName = profile.displayName;
+    state.linePictureUrl  = profile.pictureUrl;
+
+    // แสดง user pill
+    document.getElementById('userPill').style.display = 'inline-flex';
+    document.getElementById('userName').textContent = profile.displayName;
+    if (profile.pictureUrl) {
+      document.getElementById('userAvatar').innerHTML =
+        `<img src="${profile.pictureUrl}" alt="">`;
+    }
+
+    // ดึงข้อมูลสมาชิกจาก GAS
+    await fetchMemberInfo(profile.userId);
+
+  } catch (err) {
+    console.warn('LIFF init failed (preview mode):', err.message);
+    // Preview mode — ใช้ข้อมูลจำลอง
+    state.lineDisplayName = 'ตัวอย่าง ลูกค้า';
+    state.lineUserId      = 'preview_user';
+    document.getElementById('userPill').style.display = 'inline-flex';
+    document.getElementById('userName').textContent = 'ตัวอย่าง ลูกค้า';
+  }
+
+  // ซ่อน loading
+  document.getElementById('loadingScreen').style.display = 'none';
+  renderServices();
+  renderStaff();
+  renderCalendar();
+}
+
+async function fetchMemberInfo(lineId) {
+  try {
+    const resp = await fetch(GAS_URL + '?action=getMemberByLine&lineId=' + lineId);
+    const data = await resp.json();
+    if (data && data.found) {
+      state.member = data;
+      document.getElementById('memberBadge').style.display = 'inline-block';
+    }
+  } catch (e) {
+    // ไม่ connect จะ skip
+  }
+}
+
+// ─── RENDER SERVICES ─────────────────────────────────────────
+function renderServices() {
+  const list = document.getElementById('serviceList');
+  list.innerHTML = SERVICES.map(s => `
+    <div class="service-card" id="sc_${s.id}" onclick="selectService('${s.id}')">
+      <div class="service-icon">${s.icon}</div>
+      <div class="service-info">
+        <div class="service-name">${s.name}</div>
+        <div class="service-meta">⏱ ${s.duration} นาที</div>
+      </div>
+      <div class="service-price">
+        ${s.price}
+        <small>ประมาณ</small>
+      </div>
+      <div class="check-mark">✓</div>
+    </div>
+  `).join('');
+}
+
+function selectService(id) {
+  state.selectedService = SERVICES.find(s => s.id === id);
+  document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('sc_' + id).classList.add('selected');
+  document.getElementById('selectedServiceName').textContent = state.selectedService.name;
+  document.getElementById('selectedServicePrice').textContent = state.selectedService.price;
+  document.getElementById('nextBtn1').disabled = false;
+}
+
+// ─── RENDER STAFF ─────────────────────────────────────────────
+function renderStaff() {
+  const grid = document.getElementById('staffGrid');
+  grid.innerHTML = STAFF.map(s => `
+    <div class="staff-card" id="stc_${s.id}" onclick="selectStaff('${s.id}')">
+      <div class="staff-avatar">${s.initial}</div>
+      <div class="staff-name">${s.name}</div>
+      <div class="staff-role">${s.role}</div>
+      <div class="check-mark">✓</div>
+    </div>
+  `).join('');
+}
+
+function selectStaff(id) {
+  state.selectedStaff = STAFF.find(s => s.id === id);
+  document.querySelectorAll('.staff-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('stc_' + id).classList.add('selected');
+  document.getElementById('nextBtn2').disabled = false;
+}
+
+// ─── CALENDAR ─────────────────────────────────────────────────
+const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                   'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const TH_DAYS   = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+
+function changeMonth(dir) {
+  state.currentMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() + dir, 1);
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const now  = new Date();
+  const m    = state.currentMonth;
+  const year = m.getFullYear();
+  const mon  = m.getMonth();
+
+  document.getElementById('calMonth').textContent =
+    TH_MONTHS[mon] + ' ' + (year + 543);
+
+  const firstDay = new Date(year, mon, 1).getDay();
+  const lastDate = new Date(year, mon + 1, 0).getDate();
+
+  let html = TH_DAYS.map(d => `<div class="cal-day-label">${d}</div>`).join('');
+
+  for (let i = 0; i < firstDay; i++)
+    html += `<div class="cal-day empty"></div>`;
+
+  for (let d = 1; d <= lastDate; d++) {
+    const date = new Date(year, mon, d);
+    const isPast = date < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const isToday = date.toDateString() === now.toDateString();
+    const isSel = state.selectedDate && state.selectedDate.toDateString() === date.toDateString();
+    let cls = 'cal-day';
+    if (isPast) cls += ' disabled';
+    if (isToday) cls += ' today';
+    if (isSel)  cls += ' selected';
+    const onclick = isPast ? '' : `onclick="selectDate(new Date(${year},${mon},${d}))"`;
+    html += `<div class="${cls}" ${onclick}>${d}</div>`;
+  }
+
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+function selectDate(date) {
+  state.selectedDate = date;
+  state.selectedTime = null;
+  document.getElementById('nextBtn3').disabled = true;
+  renderCalendar();
+  renderTimeSlots(date);
+  document.getElementById('timeSlotsArea').style.display = 'block';
+  document.getElementById('noDateSelected').style.display = 'none';
+}
+
+function renderTimeSlots(date) {
+  // สร้าง slots จำลอง — ใน production ดึงจาก GAS
+  const morning   = ['09:00','09:30','10:00','10:30','11:00','11:30'];
+  const afternoon = ['12:00','13:00','13:30','14:00','14:30','15:00','15:30','16:00'];
+  const evening   = ['17:00','17:30','18:00'];
+
+  // สุ่มบางช่วงว่าง (demo)
+  const unavail = ['09:00','10:30','14:00','17:00'];
+
+  const makeSlots = (times, containerId) => {
+    document.getElementById(containerId).innerHTML = times.map(t => {
+      const busy = unavail.includes(t);
+      return `<div class="time-slot ${busy ? 'unavailable' : ''}"
+        ${busy ? '' : `onclick="selectTime('${t}')"`}
+        id="ts_${t.replace(':','_')}">${t}</div>`;
+    }).join('');
+  };
+
+  makeSlots(morning,   'morningSlots');
+  makeSlots(afternoon, 'afternoonSlots');
+  makeSlots(evening,   'eveningSlots');
+}
+
+function selectTime(t) {
+  state.selectedTime = t;
+  document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+  const id = 'ts_' + t.replace(':','_');
+  const el = document.getElementById(id);
+  if (el) el.classList.add('selected');
+  document.getElementById('nextBtn3').disabled = false;
+}
+
+// ─── STEP NAVIGATION ──────────────────────────────────────────
+function goToStep(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page' + n).classList.add('active');
+  document.getElementById('page' + n).classList.remove('fade-in');
+  void document.getElementById('page' + n).offsetWidth;
+  document.getElementById('page' + n).classList.add('fade-in');
+
+  // Update step indicators
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('step-' + i);
+    el.classList.remove('active', 'done');
+    if (i < n) el.classList.add('done');
+    if (i === n) el.classList.add('active');
+  }
+
+  window.scrollTo(0, 0);
+
+  if (n === 4) buildConfirmPage();
+}
+
+// ─── CONFIRM PAGE ─────────────────────────────────────────────
+function buildConfirmPage() {
+  const svc   = state.selectedService;
+  const staff = state.selectedStaff;
+  const date  = state.selectedDate;
+  const time  = state.selectedTime;
+
+  // Date string
+  const dateStr = date ?
+    `${date.getDate()} ${TH_MONTHS[date.getMonth()]} ${date.getFullYear() + 543}` : '—';
+
+  // End time
+  const [h, m] = time.split(':').map(Number);
+  const endMin  = h * 60 + m + svc.duration;
+  const endTime = `${String(Math.floor(endMin/60)).padStart(2,'0')}:${String(endMin%60).padStart(2,'0')}`;
+
+  document.getElementById('confirmService').textContent  = svc.name;
+  document.getElementById('confirmStaff').textContent    = staff.name;
+  document.getElementById('confirmDate').textContent     = dateStr;
+  document.getElementById('confirmTime').textContent     = `${time} – ${endTime} น.`;
+  document.getElementById('confirmDuration').textContent = `${svc.duration} นาที`;
+  document.getElementById('confirmPrice').textContent    = svc.price;
+
+  // Member / phone area
+  const area = document.getElementById('memberInfoArea');
+  if (state.member) {
+    area.innerHTML = `
+      <div class="member-box">
+        <div class="member-box-icon">💳</div>
+        <div class="member-box-info">
+          <div class="member-box-name">${state.member.name}</div>
+          <div class="member-box-balance">💰 ยอดเครดิต: ฿${(state.member.balance||0).toLocaleString()}</div>
+          <div class="member-box-phone">📞 ${state.member.phone} · รหัส ${state.member.memberCode}</div>
+        </div>
+        <div class="member-badge">MEMBER</div>
+      </div>`;
+  } else {
+    area.innerHTML = `
+      <div class="nonmember-box">
+        <p>🔍 ไม่พบข้อมูลสมาชิก — กรอกเบอร์โทรเพื่อเชื่อมบัญชีได้เลยค่ะ</p>
+        <div class="phone-input-row">
+          <input type="tel" class="phone-input" id="phoneInp" placeholder="0812345678" maxlength="10">
+          <button class="phone-btn" onclick="linkPhone()">เชื่อม</button>
+        </div>
+        <div class="phone-hint">* ไม่บังคับ — ข้ามได้ถ้ายังไม่ใช่สมาชิกค่ะ</div>
+      </div>`;
+  }
+}
+
+async function linkPhone() {
+  const ph = document.getElementById('phoneInp').value.replace(/\D/g,'');
+  if (ph.length < 9) { alert('กรุณากรอกเบอร์โทรให้ครบค่ะ'); return; }
+  try {
+    const resp = await fetch(GAS_URL + `?action=linkPhone&phone=${ph}&lineId=${state.lineUserId}`);
+    const data = await resp.json();
+    if (data.found) {
+      state.member = data;
+      buildConfirmPage();
+    } else {
+      document.querySelector('.phone-hint').textContent = '❌ ไม่พบเบอร์นี้ในระบบ — กรุณาติดต่อร้านค่ะ';
+      document.querySelector('.phone-hint').style.color = 'var(--pink)';
+    }
+  } catch (e) {
+    document.querySelector('.phone-hint').textContent = '⚠️ ไม่สามารถเชื่อมได้ขณะนี้ค่ะ';
+  }
+}
+
+// ─── SUBMIT BOOKING ───────────────────────────────────────────
+async function submitBooking() {
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ กำลังจอง...';
+
+  const svc   = state.selectedService;
+  const staff = state.selectedStaff;
+  const date  = state.selectedDate;
+  const time  = state.selectedTime;
+
+  const payload = {
+    action:       'booking',
+    lineUserId:   state.lineUserId,
+    lineName:     state.lineDisplayName,
+    service:      svc.name,
+    serviceId:    svc.id,
+    staffId:      staff.id,
+    staffName:    staff.name,
+    date:         date.toISOString().split('T')[0],
+    time:         time,
+    duration:     svc.duration,
+    price:        svc.price,
+    note:         document.getElementById('noteInput').value,
+    phone:        state.member ? state.member.phone : '',
+    memberCode:   state.member ? state.member.memberCode : '',
+  };
+
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      mode: 'no-cors'
+    });
+  } catch (e) {}
+
+  // Show success
+  showSuccess();
+}
+
+function showSuccess() {
+  const svc   = state.selectedService;
+  const date  = state.selectedDate;
+  const dateStr = `${date.getDate()} ${TH_MONTHS[date.getMonth()]} ${date.getFullYear()+543}`;
+
+  document.getElementById('successDetail').innerHTML = `
+    <div class="success-detail-row">
+      <span class="success-detail-label">บริการ</span>
+      <span class="success-detail-value">${svc.name}</span>
+    </div>
+    <div class="success-detail-row">
+      <span class="success-detail-label">พนักงาน</span>
+      <span class="success-detail-value">${state.selectedStaff.name}</span>
+    </div>
+    <div class="success-detail-row">
+      <span class="success-detail-label">วันที่</span>
+      <span class="success-detail-value">${dateStr}</span>
+    </div>
+    <div class="success-detail-row">
+      <span class="success-detail-label">เวลา</span>
+      <span class="success-detail-value">${state.selectedTime} น.</span>
+    </div>
+  `;
+  document.getElementById('successScreen').style.display = 'flex';
+}
+
+function closeWindow() {
+  try { liff.closeWindow(); } catch(e) { window.close(); }
+}
+
+// ─── START ────────────────────────────────────────────────────
+window.onload = initLiff;
+</script>
+</body>
+</html>
