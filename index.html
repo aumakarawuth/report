@@ -4732,9 +4732,19 @@ function _parseArchiveKey(sheetName, label) {
 
 function _getSheetForMonth(y, m) {
   var now = new Date();
-  if (y === now.getFullYear() && m === now.getMonth()) return null; // เดือนปัจจุบัน → Sheet รายการ
+  // เดือนปัจจุบัน → ไม่ต้องหา archive
+  if (y === now.getFullYear() && m === now.getMonth()) return null;
+
+  // หา key รูปแบบ "2025-03"
   var key = y + '-' + String(m + 1).padStart(2, '0');
-  return archiveSheetsByKey[key] || null;
+  var found = archiveSheetsByKey[key];
+
+  if (!found) {
+    // ไม่พบ archive → แสดง error หรือ fallback
+    console.warn('ไม่พบ archive sheet สำหรับ', key, archiveSheetsByKey);
+    return 'รายการ'; // fallback ป้องกัน error
+  }
+  return found;
 }
  
 // ── Core loader: โหลดข้อมูลจาก targetSheet แล้ว render ──
@@ -4742,40 +4752,55 @@ function _loadAndRender(targetSheet, renderFn) {
   var sheetKey = targetSheet || 'รายการ';
   var bar = document.getElementById('page-loading-bar');
 
-  if (_currentLoadedSheet === sheetKey) {
+  // ถ้าข้อมูล sheet นี้โหลดไปแล้ว → render เลย
+  if (_currentLoadedSheet === sheetKey && dataLoaded) {
     renderFn();
     return;
   }
-  if (typeof google === 'undefined' || !google.script) {
-    renderFn();
-    return;
+
+  if (typeof google !== 'undefined' && google.script) {
+    // GAS mode (เดิม)
+    if (bar) bar.classList.add('show');
+    document.getElementById('topbar-label').textContent = '⏳ กำลังโหลด...';
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (bar) bar.classList.remove('show');
+        if (result && result.error) { showError(result.error); return; }
+        processRecords((result && result.records) || []);
+        _currentLoadedSheet = sheetKey;
+        document.getElementById('topbar-label').textContent = 'Live';
+        renderFn();
+      })
+      .withFailureHandler(function(err) {
+        if (bar) bar.classList.remove('show');
+        showError('โหลดไม่สำเร็จ: ' + (err.message || err));
+        document.getElementById('topbar-label').textContent = 'Live';
+      })
+      .getDashboardDataFromSheet(sheetKey);
+
+  } else {
+    // ── GitHub Pages mode — ใช้ fetch ──
+    if (bar) bar.classList.add('show');
+    document.getElementById('topbar-label').textContent = '⏳ กำลังโหลด...';
+
+    fetch(GAS_URL + '?action=getDashboardDataFromSheet&sheetName='
+          + encodeURIComponent(sheetKey), { cache: 'no-cache' })
+      .then(function(r) { return r.json(); })
+      .then(function(result) {
+        if (bar) bar.classList.remove('show');
+        if (result && result.error) { showError(result.error); return; }
+        processRecords((result && result.records) || []);
+        _currentLoadedSheet = sheetKey;
+        document.getElementById('topbar-label').textContent = 'Live';
+        renderFn();
+      })
+      .catch(function(err) {
+        if (bar) bar.classList.remove('show');
+        showError('โหลดไม่สำเร็จ: ' + (err.message || String(err)));
+        document.getElementById('topbar-label').textContent = 'Live';
+      });
   }
-
-  // แสดง loading bar
-  if (bar) bar.classList.add('show');
-  document.getElementById('topbar-label').textContent = '⏳ กำลังโหลด...';
-
-  // หา month pill ที่ active แล้วทำ loading state
-  const activePills = document.querySelectorAll('.month-pill');
-  activePills.forEach(p => p.classList.add('month-pill-loading'));
-
-  google.script.run
-    .withSuccessHandler(function(result) {
-      if (bar) bar.classList.remove('show');
-      activePills.forEach(p => p.classList.remove('month-pill-loading'));
-      if (result && result.error) { showError(result.error); return; }
-      processRecords((result && result.records) || []);
-      _currentLoadedSheet = sheetKey;
-      document.getElementById('topbar-label').textContent = 'Live';
-      renderFn();
-    })
-    .withFailureHandler(function(err) {
-      if (bar) bar.classList.remove('show');
-      activePills.forEach(p => p.classList.remove('month-pill-loading'));
-      showError('โหลดไม่สำเร็จ: ' + (err.message || err));
-      document.getElementById('topbar-label').textContent = 'Live';
-    })
-    .getDashboardDataFromSheet(sheetKey);
 }
 
 
@@ -4813,10 +4838,13 @@ window.changeAcctMonth = function(dir) {
   if (acctMonthM > 11) { acctMonthM = 0;  acctMonthY++; }
   updateAcctMonthPill();
   if (!dataLoaded) return;
-  _loadAndRender(_getSheetForMonth(acctMonthY, acctMonthM), renderAccount);
+
+  // หา sheet ที่ตรงกับเดือนที่เลือก
+  var targetSheet = _getSheetForMonth(acctMonthY, acctMonthM);
+  // targetSheet = null หมายถึงเดือนปัจจุบัน → ใช้ 'รายการ'
+  _loadAndRender(targetSheet, renderAccount);
 };
- 
-// ── changeSumMonth ──
+
 window.changeSumMonth = function(dir) {
   _saveLocalExtraExpenses(sumMonthY, sumMonthM);
   sumMonthM += dir;
@@ -4824,7 +4852,9 @@ window.changeSumMonth = function(dir) {
   if (sumMonthM > 11) { sumMonthM = 0;  sumMonthY++; }
   updateSumMonthPill();
   if (!dataLoaded) return;
-  _loadAndRender(_getSheetForMonth(sumMonthY, sumMonthM), renderSummaryPage);
+
+  var targetSheet = _getSheetForMonth(sumMonthY, sumMonthM);
+  _loadAndRender(targetSheet, renderSummaryPage);
 };
  
 // ── changePayrollMonth ──
