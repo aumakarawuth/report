@@ -1040,8 +1040,14 @@ body{font-family:'Sarabun',sans-serif;background:var(--surface);color:var(--ink)
     <div class="page-hd-title">สรุป <span>กำไร-ขาดทุน</span></div>
     <div class="page-hd-sub">คำนวณกำไรสุทธิหลังหักค่าใช้จ่ายทั้งหมด</div>
   </div>
-  <div id="snapshot-view" style="display:none"></div>
+ <div id="snapshot-view" style="display:none"></div>
 <div id="summary-form-area">
+  <div class="month-pill">
+    <button class="month-pill-nav" id="sum-month-prev">‹</button>
+    <div class="month-pill-center">
+      <div class="month-pill-lbl" id="sum-month-lbl"></div>
+      <div class="month-pill-sub" id="sum-month-sub"></div>
+    </div>
     <button class="month-pill-nav" id="sum-month-next">›</button>
   </div>
   <div class="summary-period-banner">
@@ -1109,6 +1115,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--surface);color:var(--ink)
 </div>
   </div> 
 
+  
 <!-- ══ PAGE: SETTINGS ══ -->
 <div class="page" id="page-settings">
   <div class="page-hd">
@@ -2749,6 +2756,9 @@ function renderSummaryPage(){
   updateSumMonthPill();
 
   var isPast = _isPastMonth(sumMonthY, sumMonthM);
+  var snap   = isPast ? _loadMonthSnapshot(sumMonthY, sumMonthM) : null;
+
+  // ซ่อน/แสดง month pill ตามสถานะ
   var _pill = document.querySelector('#page-summary .month-pill');
   if (_pill) _pill.style.display = (isPast && snap) ? 'none' : 'flex';
 
@@ -2874,7 +2884,7 @@ function removeExtra(id){const el=document.getElementById('extra-'+id);if(el)el.
         align-items:center;justify-content:center;">‹</button>
       <div style="text-align:center;">
         <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;
-          color:var(--ink);">${s.pLabel}</div>
+          color:var(--ink);">${pLabel}</div>
         <div style="font-size:12px;color:var(--ink-muted);margin-top:2px;">บัญชีปิดแล้ว 🔒</div>
       </div>
       <button onclick="changeSumMonth(1)"
