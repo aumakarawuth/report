@@ -1042,18 +1042,6 @@ body{font-family:'Sarabun',sans-serif;background:var(--surface);color:var(--ink)
   </div>
   <div id="snapshot-view" style="display:none"></div>
 <div id="summary-form-area">
-  <div class="month-pill">
-    <button class="month-pill-nav" id="sum-month-prev">‹</button>
-    <div class="month-pill-center">
-      <div class="month-pill-lbl" id="sum-month-lbl"></div>
-      <div class="month-pill-sub" id="sum-month-sub"></div>
-    </div>
-    <button class="month-pill-nav" id="sum-month-next">›</button>
-  </div>
-    <div class="month-pill-center">
-      <div class="month-pill-lbl" id="sum-month-lbl"></div>
-      <div class="month-pill-sub" id="sum-month-sub"></div>
-    </div>
     <button class="month-pill-nav" id="sum-month-next">›</button>
   </div>
   <div class="summary-period-banner">
@@ -2761,7 +2749,8 @@ function renderSummaryPage(){
   updateSumMonthPill();
 
   var isPast = _isPastMonth(sumMonthY, sumMonthM);
-  var snap   = isPast ? _loadMonthSnapshot(sumMonthY, sumMonthM) : null;
+  var _pill = document.querySelector('#page-summary .month-pill');
+  if (_pill) _pill.style.display = (isPast && snap) ? 'none' : 'flex';
 
   if (isPast && snap) {
     // ── READ-ONLY MODE: แสดงสรุปเดือนปิดแล้ว ──
@@ -2875,6 +2864,25 @@ function removeExtra(id){const el=document.getElementById('extra-'+id);if(el)el.
   var savedDate = snap.savedAt ? new Date(snap.savedAt).toLocaleDateString('th-TH') : '-';
 
   document.getElementById('snapshot-view').innerHTML = `
+    <!-- month nav for snapshot -->
+    <div style="display:flex;align-items:center;justify-content:space-between;
+      background:var(--card);border:1.5px solid var(--rose-border);border-radius:16px;
+      padding:12px 16px;margin-bottom:14px;">
+      <button onclick="changeSumMonth(-1)"
+        style="width:44px;height:44px;border:none;background:var(--surface-2);
+        border-radius:10px;font-size:22px;cursor:pointer;display:flex;
+        align-items:center;justify-content:center;">‹</button>
+      <div style="text-align:center;">
+        <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;
+          color:var(--ink);">${s.pLabel}</div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-top:2px;">บัญชีปิดแล้ว 🔒</div>
+      </div>
+      <button onclick="changeSumMonth(1)"
+        id="snap-next-btn"
+        style="width:44px;height:44px;border:none;background:var(--surface-2);
+        border-radius:10px;font-size:22px;cursor:pointer;display:flex;
+        align-items:center;justify-content:center;">›</button>
+    </div>
     <!-- badge ปิดบัญชีแล้ว -->
     <div style="display:flex;align-items:center;gap:10px;background:#1A1025;border-radius:16px;padding:14px 18px;margin-bottom:16px;">
       <span style="font-size:20px;">🔒</span>
@@ -2936,6 +2944,15 @@ function removeExtra(id){const el=document.getElementById('extra-'+id);if(el)el.
     </div>`;
 
   // เก็บไว้สำหรับ export
+
+      var _now2 = new Date();
+  var _snapNext = document.getElementById('snap-next-btn');
+  if (_snapNext) {
+    var _isCur = (sumMonthY === _now2.getFullYear() && sumMonthM === _now2.getMonth());
+    _snapNext.disabled = _isCur;
+    _snapNext.style.opacity = _isCur ? '0.3' : '1';
+  }
+    
   window._currentSnap = { snap, netRevenue, creditFee, fixedTotal, extraTotal, totalSalary,
     totalCommSvc, totalCommMem, totalStaff, totalExpense, netProfit, isProfit,
     staffCount, selectedNames, pLabel, staffDataLocal };
