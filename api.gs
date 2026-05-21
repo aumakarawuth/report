@@ -90,6 +90,32 @@ function _handleWebAPI(e) {
       case 'bk_registerCustomer': result = _bk_registerCustomer(p);    break;
       case 'bk_getStaffs':        result = _bk_getStaffs();            break;
 
+
+      // ── Dashboard API ──────────────────────────────────────
+      case 'getDashboardDataFromSheet':
+        result = getDashboardDataFromSheet(p.sheetName || 'รายการ');
+        break;
+
+      case 'getMembersData':
+        result = getMembersData();
+        break;
+
+      case 'getArchivedMonths':
+        result = getArchivedMonths();
+        break;
+
+      case 'getConfig':
+        result = getConfig() || {};
+        break;
+
+      case 'saveConfig':
+        result = _saveConfigFromWeb(p);
+        break;
+
+      case 'getExpenseData':
+        result = getExpenseData(p.periodKey || 'month');
+        break;
+
       default:
         result = { ok: false, error: 'Unknown action: ' + action };
     }
@@ -962,4 +988,61 @@ function test_bk_getStaffs() {
   var result = _bk_getStaffs();
   Logger.log('Staffs count: ' + result.staffs.length);
   Logger.log('Result: ' + JSON.stringify(result));
+}
+
+
+
+function _saveConfigFromWeb(p) {
+  // แปลง query params กลับเป็น object สำหรับ saveConfig
+  var cfg = {};
+  var boolKeys = ['PROMO_REG_ACTIVE','PROMO_TOPUP_ACTIVE','NOTIFY_EDIT','SEND_RECEIPT'];
+  var numKeys  = ['BONUS_REGISTER','BONUS_TOPUP','TIER_20K','TIER_10K','TIER_5K',
+                  'COMM_NAIL','COMM_LASH','COMM_SPA','COMM_WAX','COMM_MEM',
+                  'CREDIT_FEE','MEMBER_EXPIRE_MONTHS','EDIT_LIMIT_MIN',
+                  'EXPIRE_WARN_MONTHS','MONTHLY_TARGET'];
+  
+  Object.keys(p).forEach(function(key) {
+    if (key === 'action') return;
+    if (boolKeys.indexOf(key) !== -1) {
+      cfg[key] = (p[key] === 'true' || p[key] === true);
+    } else if (numKeys.indexOf(key) !== -1) {
+      cfg[key] = parseFloat(p[key]) || 0;
+    } else {
+      cfg[key] = p[key];
+    }
+  });
+  
+  saveConfig(cfg);
+  return { ok: true };
+}
+
+
+
+function _saveConfigFromWeb(p) {
+  var boolKeys = [
+    'PROMO_REG_ACTIVE','PROMO_TOPUP_ACTIVE',
+    'NOTIFY_EDIT','SEND_RECEIPT'
+  ];
+  var numKeys = [
+    'BONUS_REGISTER','BONUS_TOPUP',
+    'TIER_20K','TIER_10K','TIER_5K',
+    'COMM_NAIL','COMM_LASH','COMM_SPA','COMM_WAX','COMM_MEM',
+    'CREDIT_FEE','MEMBER_EXPIRE_MONTHS','EDIT_LIMIT_MIN',
+    'EXPIRE_WARN_MONTHS','MONTHLY_TARGET'
+  ];
+
+  var cfg = {};
+  Object.keys(p).forEach(function(key) {
+    if (key === 'action') return;
+    if (boolKeys.indexOf(key) !== -1) {
+      cfg[key] = (p[key] === 'true' || p[key] === true);
+    } else if (numKeys.indexOf(key) !== -1) {
+      cfg[key] = parseFloat(p[key]) || 0;
+    } else {
+      cfg[key] = p[key];
+    }
+  });
+
+  saveConfig(cfg);
+  return { ok: true };
 }
