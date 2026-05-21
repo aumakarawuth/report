@@ -1671,6 +1671,8 @@ let staffSelectionMap={},staffDataMap={};
 let lastCalcResult=null;
 let archiveSheetName = null;  // null = เดือนปัจจุบัน
 let _lastLoadTime = 0;
+let _prevMonthRecords = [];
+let _prevMonthLoaded = false;
 
 // ── Helpers ──
 function getDateRange(p,cDate){
@@ -1820,11 +1822,51 @@ function finishLoad(){
   dataLoaded=true;
   document.getElementById('topbar-label').textContent='Live';
   render();
-  if(calOpen)renderCal();
-  if(recCalOpen)renderRecCal();
-  updateStaffMonthPill();
-  updateSumMonthPill();
+  // โหลด archive เดือนที่แล้วสำหรับ comparison (หลัง render แล้วค่อย re-render)
+  if (!_prevMonthLoaded) {
+    loadPrevMonthArchive().then(() => {
+      if (currentPage === 'dash') render();
+    });
+  }
+
+
+
+  async function loadPrevMonthArchive() {
+  const now  = new Date();
+  const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const key  = prev.getFullYear() + '-' + String(prev.getMonth() + 1).padStart(2, '0');
+  const sheetName = archiveSheetsByKey[key];
+  
+  if (!sheetName) {
+    // ไม่มี archive → ลองดึงจาก sheet ปัจจุบันอีกครั้ง (กรณียังไม่ถึงเวลา archive)
+    _prevMonthLoaded = true;
+    _prevMonthRecords = [];
+    return;
+  }
+  
+  try {
+    const r = await fetch(GAS_URL + '?action=getDashboardDataFromSheet&sheetName='
+      + encodeURIComponent(sheetName), { cache: 'no-cache' });
+    const result = await r.json();
+    const rows = (result && result.records) || [];
+    _prevMonthRecords = rows.map(r => ({
+      date:      new Date(r.timestamp || r.date),
+      staffName: r.staffName || '-',
+      service:   r.service   || '-',
+      price:     Number(r.price) || 0,
+      payment:   r.payment   || 'Cash',
+      phone:     r.phone     || '-',
+      accountType: r.accountType || '-'
+    })).filter(r => !isNaN(r.date) && r.price > 0);
+    _prevMonthLoaded = true;
+  } catch(e) {
+    console.warn('loadPrevMonthArchive error:', e);
+    _prevMonthLoaded = true;
+    _prevMonthRecords = [];
+  }
 }
+
+  
 
 function showLoading(){
   document.getElementById('kpi-grid').innerHTML=`<div class="kpi-full kpi-card kc1" style="justify-content:center;padding:24px"><div style="font-size:16px;color:var(--ink-muted);font-weight:600">⏳ กำลังโหลด...</div></div>`;
@@ -1897,22 +1939,43 @@ function render(){
 }
 
 function getMonthComparison(){
-  const now=new Date();
-  const thisM=getMonthRange(now.getFullYear(),now.getMonth());
-  const lastM=getMonthRange(now.getFullYear(),now.getMonth()-1);
-  const calcNet=(start,end)=>{
-    const svcR=ALL.filter(r=>isSvc(r)&&r.date>=start&&r.date<=end);
-    const memR=ALL.filter(r=>isMem(r)&&r.date>=start&&r.date<=end);
-    const cashSvcR=svcR.filter(r=>r.payment!=='Member');
-    const creditRev=(cashSvcR.filter(r=>r.payment==='Credit').reduce((s,r)=>s+r.price,0))+(memR.filter(r=>r.payment==='Credit').reduce((s,r)=>s+r.price,0));
-    const creditFee=Math.round(creditRev*CREDIT_FEE_RATE);
-    return cashSvcR.reduce((s,r)=>s+r.price,0)+memR.reduce((s,r)=>s+r.price,0)-creditFee;
+  const now = new Date();
+  
+  const calcNetFromArray = (recs) => {
+    const thisM_start = new Date(now.getFullYear(), now.getMonth() - (recs === _prevMonthRecords ? 1 : 0), 1);
+    // ใช้ ALL สำหรับเดือนนี้, _prevMonthRecords สำหรับเดือนที่แล้ว
+    const svcR = recs.filter(r => isSvc(r));
+    const memR = recs.filter(r => isMem(r));
+    const cashSvcR = svcR.filter(r => r.payment !== 'Member');
+    const creditRev = (cashSvcR.filter(r => r.payment === 'Credit').reduce((s,r) => s+r.price, 0))
+                    + (memR.filter(r => r.payment === 'Credit').reduce((s,r) => s+r.price, 0));
+    const creditFee = Math.round(creditRev * CREDIT_FEE_RATE);
+    return cashSvcR.reduce((s,r) => s+r.price, 0) + memR.reduce((s,r) => s+r.price, 0) - creditFee;
   };
-  const thisRev=calcNet(thisM.start,thisM.end);
-  const lastRev=calcNet(lastM.start,lastM.end);
-  const diff=thisRev-lastRev;
-  const pct=lastRev>0?Math.round((diff/lastRev)*100):null;
-  return{thisRev,lastRev,diff,pct};
+
+  // เดือนนี้ — กรองจาก ALL เฉพาะเดือนนี้
+  const thisStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const thisEnd   = new Date(now.getFullYear(), now.getMonth()+1, 0, 23, 59, 59);
+  const thisRecs  = ALL.filter(r => r.date >= thisStart && r.date <= thisEnd);
+  const thisRev   = calcNetFromArray(thisRecs);
+
+  // เดือนที่แล้ว — ใช้ _prevMonthRecords ที่โหลดมาจาก archive
+  const lastRev = _prevMonthLoaded 
+    ? calcNetFromArray(_prevMonthRecords)
+    : ALL.filter(r => {
+        const lastStart = new Date(now.getFullYear(), now.getMonth()-1, 1);
+        const lastEnd   = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+        return r.date >= lastStart && r.date <= lastEnd;
+      }).reduce((s,r) => {
+        // fallback คำนวณแบบง่าย ถ้ายังไม่ได้โหลด archive
+        if (isSvc(r) && r.payment !== 'Member') return s + r.price;
+        if (isMem(r)) return s + r.price;
+        return s;
+      }, 0);
+
+  const diff = thisRev - lastRev;
+  const pct  = lastRev > 0 ? Math.round((diff / lastRev) * 100) : null;
+  return { thisRev, lastRev, diff, pct };
 }
 
 
