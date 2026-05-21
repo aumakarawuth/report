@@ -1514,6 +1514,12 @@ body{font-family:'Sarabun',sans-serif;background:var(--surface);color:var(--ink)
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
+
+
+  // ── เพิ่มบรรทัดนี้ด้านบนสุดของ <script> ──
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzrZt0orG7_m3Lp9IxQsydBmhSwji_ks456bjKvPbO747-S8mCGQHVrsyqEJHKYjcdd/exec';
+
+
 // ── Constants (will be overridden by config) ──
 let COMM={'ต่อขนตา':0.15,'ทำเล็บ':0.10,'สปามือ/เท้า':0.10,'แว็กขน':0.10};
 let MEM_COMM_RATE=0.01;
@@ -1608,48 +1614,47 @@ window.finishLoad = function() {
 
 function loadData() {
   document.getElementById('topbar-label').textContent = 'กำลังโหลด...';
-  if (typeof google !== 'undefined' && google.script) {
 
-    // โหลด archive list (ชีทในไฟล์หลัก)
-    google.script.run
-      .withSuccessHandler(function(archives) {
-        renderArchiveSelector(archives || []);
-      })
-      .withFailureHandler(function() {})
-      .getArchivedMonths();
+  // โหลด archive list
+  fetch(GAS_URL + '?action=getArchivedMonths')
+    .then(r => r.json())
+    .then(archives => renderArchiveSelector(archives || []))
+    .catch(() => {});
 
-    // โหลดข้อมูล — ใช้ getDashboardDataFromSheet เสมอ
-    // ถ้า archiveSheetName = null → ดึงจาก Sheet "รายการ" (ปัจจุบัน)
-    // ถ้า archiveSheetName = 'รายการ_เมษายน_2569' → ดึงจาก Sheet นั้น
-    var targetSheet = archiveSheetName || 'รายการ';
+  var targetSheet = archiveSheetName || 'รายการ';
 
-    google.script.run
-      .withSuccessHandler(function(result) {
-        if (result && result.error) { showError(result.error); return; }
-        processRecords((result && result.records) || []);
-        loadMembers();
-      })
-      .withFailureHandler(function(err) {
-        showError('โหลดไม่สำเร็จ: ' + (err.message || err));
-      })
-      .getDashboardDataFromSheet(targetSheet);
-
-  } else {
-    ALL = []; MEMBERS = {}; finishLoad();
-  }
+  fetch(GAS_URL + '?action=getDashboardDataFromSheet&sheetName=' + encodeURIComponent(targetSheet))
+    .then(r => r.json())
+    .then(function(result) {
+      if (result && result.error) { showError(result.error); return; }
+      processRecords((result && result.records) || []);
+      // โหลด members ต่อ
+      return fetch(GAS_URL + '?action=getMembersData');
+    })
+    .then(r => r.json())
+    .then(function(result) {
+      if (result && result.members) processMemberData(result.members);
+      finishLoad();
+    })
+    .catch(function(err) {
+      showError('โหลดไม่สำเร็จ: ' + (err.message || err));
+    });
 }
 
 
 
 
-function loadMembers(){
-  if(typeof google!=='undefined'&&google.script){
-    google.script.run
-      .withSuccessHandler(function(result){if(result&&result.members)processMemberData(result.members);finishLoad();})
-      .withFailureHandler(function(){finishLoad();})
-      .getMembersData();
-  } else {finishLoad();}
+function loadMembers() {
+  fetch(GAS_URL + '?action=getMembersData')
+    .then(r => r.json())
+    .then(function(result) {
+      if (result && result.members) processMemberData(result.members);
+      finishLoad();
+    })
+    .catch(function() { finishLoad(); });
 }
+
+
 
 function processMemberData(rows) {
   MEMBERS = {};
@@ -2643,20 +2648,19 @@ function cfgApply(s) {
 }
 
 function cfgLoad() {
-
-  // โหลด target จาก localStorage ด้วย
-const savedTarget=localStorage.getItem('nk_monthly_target');
-if(savedTarget){
-  const el=document.getElementById('cfg-monthly-target');
-  if(el)el.value=savedTarget;
-}
-  if (typeof google !== 'undefined' && google.script) {
-    google.script.run
-      .withSuccessHandler(cfgApply)
-      .withFailureHandler(() => {})
-      .getConfig();
+  const savedTarget = localStorage.getItem('nk_monthly_target');
+  if (savedTarget) {
+    const el = document.getElementById('cfg-monthly-target');
+    if (el) el.value = savedTarget;
   }
+
+  fetch(GAS_URL + '?action=getConfig')
+    .then(r => r.json())
+    .then(cfgApply)
+    .catch(() => {});
 }
+
+
 
 function cfgShowToast(msg, isErr) {
   const t = document.getElementById('cfg-toast');
@@ -2666,19 +2670,28 @@ function cfgShowToast(msg, isErr) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+
+
 function cfgSave() {
   const s = cfgGetValues();
-  if (typeof google !== 'undefined' && google.script) {
-    google.script.run
-      .withSuccessHandler(() => { cfgApply(s); cfgShowToast('บันทึกสำเร็จ ✅'); if(dataLoaded) render(); })
-      .withFailureHandler(() => cfgShowToast('บันทึกไม่สำเร็จ ลองใหม่', true))
-      .saveConfig(s);
-  } else {
-    cfgApply(s);
-    cfgShowToast('บันทึกสำเร็จ ✅ (demo mode)');
-    if(dataLoaded) render();
+  // บันทึก monthly target ลง localStorage ด้วย
+  if (s.MONTHLY_TARGET !== undefined) {
+    localStorage.setItem('nk_monthly_target', s.MONTHLY_TARGET);
   }
+
+  const params = new URLSearchParams({ action: 'saveConfig', ...s });
+
+  fetch(GAS_URL + '?' + params.toString())
+    .then(r => r.json())
+    .then(() => {
+      cfgApply(s);
+      cfgShowToast('บันทึกสำเร็จ ✅');
+      if (dataLoaded) render();
+    })
+    .catch(() => cfgShowToast('บันทึกไม่สำเร็จ ลองใหม่', true));
 }
+
+
 
 function cfgReset() {
   if (!confirm('รีเซ็ตการตั้งค่าทั้งหมดกลับค่าเริ่มต้น?')) return;
