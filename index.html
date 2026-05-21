@@ -2635,16 +2635,6 @@ function renderSummaryPage(){
   renderStaffCheckboxes();
 
   loadExtraExpensesFromSheet(sumMonthY, sumMonthM);
-  setTimeout(function() {
-  var list = document.getElementById('extra-expense-list');
-  if (list) {
-    list.addEventListener('input', function() {
-      _saveLocalExtraExpenses(sumMonthY, sumMonthM);
-    });
-  }
-}, 500);
-}
-
 
 function calculateSummary() {
   _saveLocalExtraExpenses(sumMonthY, sumMonthM); // save ก่อนเสมอ
@@ -4980,83 +4970,58 @@ function _renderSheetItems(byCategory) {
 
 
 
-  function loadExtraExpensesFromSheet(y, m) {
-  // 1. reset items เดิม
+function loadExtraExpensesFromSheet(y, m) {
   document.querySelectorAll('.extra-item').forEach(function(el) { el.remove(); });
   _updateExtraHeader(0);
 
   var container = document.getElementById('extra-expense-list');
-
-  // ลบ listener เก่าก่อน (ป้องกัน duplicate)
   if (container._inputListener) {
     container.removeEventListener('input', container._inputListener);
   }
-  container._inputListener = function() {
-    _saveLocalExtraExpenses(y, m);
-  };
+  container._inputListener = function() { _saveLocalExtraExpenses(y, m); };
   container.addEventListener('input', container._inputListener);
 
-  // 2. โหลด cache ก่อนเสมอ (ทำงานทั้ง GitHub Pages และ GAS)
   var hasCached = _loadLocalExtraExpenses(y, m);
   if (hasCached) {
     var t = _calcExtraTotal();
     if (t > 0) _updateExtraHeader(t);
   }
 
-  // 3. ถ้าไม่ได้รัน GAS → จบแค่นี้
-  if (typeof google === 'undefined' || !google.script) return;
-
+  var periodKey = y + '-' + String(m + 1).padStart(2, '0');
   var now = new Date();
   var isCurrentMonth = (y === now.getFullYear() && m === now.getMonth());
 
-  // 4. เดือนเก่า + มี cache → ไม่ fetch ซ้ำ
-  if (!isCurrentMonth && hasCached) return;
-
-  // 5. Fetch จาก GAS
-  // periodKey ต้องเป็น CE year + 1-indexed month เช่น "2025-04"
-  var periodKey = y + '-' + String(m + 1).padStart(2, '0');
-
-  google.script.run
-    .withSuccessHandler(function(result) {
-      if (!result || result.error) {
-        _saveLocalExtraExpenses(y, m);
-        return;
-      }
-      var byCategory = result.byCategory || {};
-      var sheetTotal = Number(result.total) || 0;
-
-      if (!Object.keys(byCategory).length) {
-        _saveLocalExtraExpenses(y, m);
-        return;
-      }
-
-      _renderSheetItems(byCategory);
-      _updateExtraHeader(sheetTotal);
-      _saveLocalExtraExpenses(y, m);
-    })
-    .withFailureHandler(function(err) {
-      console.error('[loadExtraExpenses] error:', err);
-    })
-    .getExpenseData(periodKey);
-
-
-    // 5b. GitHub Pages mode → fetch ผ่าน GAS_URL
-  if (typeof GAS_URL !== 'undefined') {
-    var periodKey = y + '-' + String(m + 1).padStart(2, '0');
-    fetch(GAS_URL + '?action=getExpenseData&periodKey=' + periodKey, { cache: 'no-cache' })
-      .then(function(r) { return r.json(); })
-      .then(function(result) {
+  // ── GAS mode ──
+  if (typeof google !== 'undefined' && google.script) {
+    if (!isCurrentMonth && hasCached) return;
+    google.script.run
+      .withSuccessHandler(function(result) {
         if (!result || result.error || !Object.keys(result.byCategory || {}).length) {
-          _saveLocalExtraExpenses(y, m);
-          return;
+          _saveLocalExtraExpenses(y, m); return;
         }
         _renderSheetItems(result.byCategory);
         _updateExtraHeader(result.total || 0);
         _saveLocalExtraExpenses(y, m);
       })
-      .catch(function(e) {
-        console.error('[loadExtraExpenses fetch]', e);
-      });
+      .withFailureHandler(function(err) {
+        console.error('[loadExtraExpenses] error:', err);
+      })
+      .getExpenseData(periodKey);
+
+  // ── GitHub Pages mode ──
+  } else if (typeof GAS_URL !== 'undefined') {
+    if (!isCurrentMonth && hasCached) return;
+    fetch(GAS_URL + '?action=getExpenseData&periodKey=' + periodKey, { cache: 'no-cache' })
+      .then(function(r) { return r.json(); })
+      .then(function(result) {
+        if (!result || result.error || !Object.keys(result.byCategory || {}).length) {
+          _saveLocalExtraExpenses(y, m); return;
+        }
+        _renderSheetItems(result.byCategory);
+        _updateExtraHeader(result.total || 0);
+        _saveLocalExtraExpenses(y, m);
+      })
+      .catch(function(e) { console.error('[loadExtraExpenses fetch]', e); });
   }
 }
 
