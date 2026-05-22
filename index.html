@@ -2210,6 +2210,8 @@ function processRecords(rows){
 }
 function finishLoad(){
   _lastLoadTime=Date.now();dataLoaded=true;
+  _prevMonthRecords = [];   // ← เพิ่มบรรทัดนี้
+  _prevMonthLoaded = false; // ← reset flag ด้วย
   document.getElementById('topbar-label').textContent='Live';
   
   // DEBUG — ดูใน Browser Console (F12)
@@ -2453,6 +2455,7 @@ function renderPeakHours(){
 
 
    async function loadMultiMonthArchives(){
+   _prevMonthRecords = []; 
   var now = new Date();
   var promises = [];
   for(var i = 1; i <= 5; i++){
