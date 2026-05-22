@@ -2553,18 +2553,43 @@ function renderKPI(revenue,count,memPay,totalComm,memCommTotal,staffCount,memCom
 }
 
 function renderBar(recs,creditFee=0){
-  const totalRev=recs.reduce((s,r)=>s+r.price,0)||1;
   const chart=document.getElementById('bar-chart');chart.innerHTML='';
+  const totalRev=recs.reduce((s,r)=>s+r.price,0);
   const now=new Date();let groups={};
   const useDay=customDate||period==='day';
-  if(useDay){for(let h=9;h<=20;h++)groups[h+':00']=0;recs.forEach(r=>{const k=r.date.getHours()+':00';if(k in groups)groups[k]+=r.price;});}
-  else if(period==='week'){const dn=['จ','อ','พ','พฤ','ศ','ส','อา'];for(let i=6;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);groups[dn[d.getDay()===0?6:d.getDay()-1]+'\n'+d.getDate()]=0;}recs.forEach(r=>{const d=r.date;const k=(['จ','อ','พ','พฤ','ศ','ส','อา'][d.getDay()===0?6:d.getDay()-1])+'\n'+d.getDate();if(k in groups)groups[k]+=r.price;});}
-  else{['สัปดาห์ 1','สัปดาห์ 2','สัปดาห์ 3','สัปดาห์ 4'].forEach(w=>groups[w]=0);recs.forEach(r=>{const d=r.date.getDate();const w=d<=7?'สัปดาห์ 1':d<=14?'สัปดาห์ 2':d<=21?'สัปดาห์ 3':'สัปดาห์ 4';groups[w]+=r.price;});}
-  const maxV=Math.max(...Object.values(groups),1);
+  if(useDay){
+    for(let h=9;h<=20;h++)groups[h+':00']=0;
+    recs.forEach(r=>{const k=r.date.getHours()+':00';if(k in groups)groups[k]+=r.price;});
+  } else if(period==='week'){
+    const dn=['จ','อ','พ','พฤ','ศ','ส','อา'];
+    for(let i=6;i>=0;i--){
+      const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);
+      groups[dn[d.getDay()===0?6:d.getDay()-1]+'\n'+d.getDate()]=0;
+    }
+    recs.forEach(r=>{
+      const d=r.date;
+      const k=(['จ','อ','พ','พฤ','ศ','ส','อา'][d.getDay()===0?6:d.getDay()-1])+'\n'+d.getDate();
+      if(k in groups)groups[k]+=r.price;
+    });
+  } else {
+    ['สัปดาห์ 1','สัปดาห์ 2','สัปดาห์ 3','สัปดาห์ 4'].forEach(w=>groups[w]=0);
+    recs.forEach(r=>{
+      const d=r.date.getDate();
+      const w=d<=7?'สัปดาห์ 1':d<=14?'สัปดาห์ 2':d<=21?'สัปดาห์ 3':'สัปดาห์ 4';
+      groups[w]+=r.price;
+    });
+  }
+
+  const vals=Object.values(groups);
+  const maxV=Math.max(...vals,1);
+  const feeRatio=totalRev>0?creditFee/totalRev:0;
+
   Object.entries(groups).forEach(([lbl,val],i)=>{
-    const netVal=Math.round(val-(val/totalRev)*creditFee);const h=Math.max((netVal/maxV)*110,netVal>0?6:2);const g=BAR_COLS[i%BAR_COLS.length];
+    const netVal=Math.round(val*(1-feeRatio));
+    const h=Math.max((val/maxV)*110, val>0?8:2);
+    const g=BAR_COLS[i%BAR_COLS.length];
     const div=document.createElement('div');div.className='bar-grp';
-    div.innerHTML=`<div class="bar-val">${netVal>0?'฿'+netVal.toLocaleString():''}</div><div class="bar" style="height:${h}px;background:linear-gradient(180deg,${g[0]},${g[1]});opacity:${val>0?1:0.15}" onmouseenter="showTip(event,'฿${netVal.toLocaleString()}')" ontouchstart="showTip(event,'฿${netVal.toLocaleString()}')" onmouseleave="hideTip()" ontouchend="hideTip()"></div><div class="bar-lbl">${lbl.replace('\n','<br>')}</div>`;
+    div.innerHTML=`<div class="bar-val">${val>0?'฿'+(netVal>=1000?Math.round(netVal/1000)+'K':netVal.toLocaleString()):''}</div><div class="bar" style="height:${h}px;background:linear-gradient(180deg,${g[0]},${g[1]});opacity:${val>0?1:0.15}" onmouseenter="showTip(event,'฿${netVal.toLocaleString()}')" ontouchstart="showTip(event,'฿${netVal.toLocaleString()}')" onmouseleave="hideTip()" ontouchend="hideTip()"></div><div class="bar-lbl">${lbl.replace('\n','<br>')}</div>`;
     chart.appendChild(div);
   });
 }
