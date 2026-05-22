@@ -1487,7 +1487,7 @@ body{
       <div><div class="chart-ttl">📈 รายรับตามช่วงเวลา</div><div class="chart-sub" id="chart-sub"></div></div>
       <span class="chart-chip" id="chart-period-chip">วันนี้</span>
     </div>
-    <div class="bar-outer"><div class="bar-chart" id="bar-chart"></div></div>
+    <div class="bar-outer"><div class="bar-chart" id="bar-chart" style="min-height:130px;align-items:flex-end;display:flex;gap:6px;"></div></div>
   </div>
 
   <div class="donut-card">
@@ -2552,43 +2552,64 @@ function renderKPI(revenue,count,memPay,totalComm,memCommTotal,staffCount,memCom
   render6MonthChart();renderPeakHours();
 }
 
-function renderBar(recs,creditFee=0){
-  const chart=document.getElementById('bar-chart');chart.innerHTML='';
-  const totalRev=recs.reduce((s,r)=>s+r.price,0);
-  const now=new Date();let groups={};
-  const useDay=customDate||period==='day';
+function renderBar(recs,creditFee){
+  creditFee=creditFee||0;
+  var chart=document.getElementById('bar-chart');
+  if(!chart)return;
+  chart.innerHTML='';
+  var totalRev=recs.reduce(function(s,r){return s+r.price;},0);
+  var now=new Date();
+  var groups={};
+  var useDay=customDate||(period==='day');
+
   if(useDay){
-    for(let h=9;h<=20;h++)groups[h+':00']=0;
-    recs.forEach(r=>{const k=r.date.getHours()+':00';if(k in groups)groups[k]+=r.price;});
+    for(var h=9;h<=20;h++)groups[h+':00']=0;
+    recs.forEach(function(r){
+      var k=r.date.getHours()+':00';
+      if(k in groups)groups[k]+=r.price;
+    });
   } else if(period==='week'){
-    const dn=['จ','อ','พ','พฤ','ศ','ส','อา'];
-    for(let i=6;i>=0;i--){
-      const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);
-      groups[dn[d.getDay()===0?6:d.getDay()-1]+'\n'+d.getDate()]=0;
+    var dn=['จ','อ','พ','พฤ','ศ','ส','อา'];
+    for(var i=6;i>=0;i--){
+      var d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);
+      var dow=d.getDay()===0?6:d.getDay()-1;
+      groups[dn[dow]+'\n'+d.getDate()]=0;
     }
-    recs.forEach(r=>{
-      const d=r.date;
-      const k=(['จ','อ','พ','พฤ','ศ','ส','อา'][d.getDay()===0?6:d.getDay()-1])+'\n'+d.getDate();
+    recs.forEach(function(r){
+      var d=r.date;
+      var dow=d.getDay()===0?6:d.getDay()-1;
+      var k=dn[dow]+'\n'+d.getDate();
       if(k in groups)groups[k]+=r.price;
     });
   } else {
-    ['สัปดาห์ 1','สัปดาห์ 2','สัปดาห์ 3','สัปดาห์ 4'].forEach(w=>groups[w]=0);
-    recs.forEach(r=>{
-      const d=r.date.getDate();
-      const w=d<=7?'สัปดาห์ 1':d<=14?'สัปดาห์ 2':d<=21?'สัปดาห์ 3':'สัปดาห์ 4';
+    ['สัปดาห์ 1','สัปดาห์ 2','สัปดาห์ 3','สัปดาห์ 4'].forEach(function(w){groups[w]=0;});
+    recs.forEach(function(r){
+      var d=r.date.getDate();
+      var w=d<=7?'สัปดาห์ 1':d<=14?'สัปดาห์ 2':d<=21?'สัปดาห์ 3':'สัปดาห์ 4';
       groups[w]+=r.price;
     });
   }
 
-  const maxV=Math.max(...Object.values(groups),1);
-  const feeRatio=totalRev>0?creditFee/totalRev:0;
+  var vals=Object.values(groups);
+  var maxV=Math.max.apply(null,vals.concat([1]));
+  var feeRatio=totalRev>0?creditFee/totalRev:0;
 
-  Object.entries(groups).forEach(([lbl,val],i)=>{
-    const netVal=totalRev>0?Math.round(val*(1-feeRatio)):val;
-    const h=Math.max((val/maxV)*110, val>0?8:2);
-    const g=BAR_COLS[i%BAR_COLS.length];
-    const div=document.createElement('div');div.className='bar-grp';
-    div.innerHTML=`<div class="bar-val">${val>0?'฿'+(netVal>=1000?Math.round(netVal/1000)+'K':netVal.toLocaleString()):''}</div><div class="bar" style="height:${h}px;background:linear-gradient(180deg,${g[0]},${g[1]});opacity:${val>0?1:0.15}" onmouseenter="showTip(event,'฿${netVal.toLocaleString()}')" ontouchstart="showTip(event,'฿${netVal.toLocaleString()}')" onmouseleave="hideTip()" ontouchend="hideTip()"></div><div class="bar-lbl">${lbl.replace('\n','<br>')}</div>`;
+  Object.keys(groups).forEach(function(lbl,i){
+    var val=groups[lbl];
+    var netVal=Math.round(val*(1-feeRatio));
+    var barH=Math.max((val/maxV)*110, val>0?8:2);
+    var g=BAR_COLS[i%BAR_COLS.length];
+    var valLbl=val>0?('฿'+(netVal>=1000?Math.round(netVal/1000)+'K':netVal.toLocaleString())):'';
+    var tipTxt='฿'+netVal.toLocaleString();
+    var div=document.createElement('div');
+    div.className='bar-grp';
+    div.innerHTML=
+      '<div class="bar-val">'+valLbl+'</div>'+
+      '<div class="bar" style="height:'+barH+'px;background:linear-gradient(180deg,'+g[0]+','+g[1]+');opacity:'+(val>0?1:0.15)+'" '+
+        'onmouseenter="showTip(event,\''+tipTxt+'\')" '+
+        'ontouchstart="showTip(event,\''+tipTxt+'\')" '+
+        'onmouseleave="hideTip()" ontouchend="hideTip()"></div>'+
+      '<div class="bar-lbl">'+lbl.replace('\n','<br>')+'</div>';
     chart.appendChild(div);
   });
 }
