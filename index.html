@@ -2508,24 +2508,37 @@ function renderGoalBanner(netRevenue){
 function renderKPI(revenue,count,memPay,totalComm,memCommTotal,staffCount,memCommPerStaff,creditRev,creditFee,netRevenue){
   const svcColors=['#D4537E','#534AB7','#0F6E56','#BA7517'];
   const svcPales=['var(--rose-pale)','var(--purple-pale)','var(--teal-pale)','var(--amber-pale)'];
-  const svcNames=['ทำเล็บ','ต่อขนตา','สปามือ/เท้า','แว็กขน'];
-  const svcEmoji=['🌸','✨','💆','🪮'];
+   const svcNames=['ทำเล็บ','ต่อขนตา','สปามือ/เท้า'];
+   const svcEmoji=['🌸','✨','💆'];
   const svcMap={};svcNames.forEach(n=>{svcMap[n]=0;});
   const{start,end}=getDateRange(period,customDate);
   ALL.filter(r=>isSvc(r)&&r.date>=start&&r.date<=end).forEach(r=>{if(svcMap[r.service]!==undefined)svcMap[r.service]+=r.price;else svcMap['อื่นๆ']=(svcMap['อื่นๆ']||0)+r.price;});
 
-  const svcCards=svcNames.map((n,i)=>{
-    const v=svcMap[n]||0;
-    const sparkVals=[40,60,45,80,65,90,75,100].map(()=>Math.round(20+Math.random()*80));
-    const mx=Math.max(...sparkVals);
-    const sparkHtml=sparkVals.map(v=>`<div class="spark-bar" style="height:${Math.round((v/mx)*22)}px;background:${svcColors[i]};opacity:0.6;"></div>`).join('');
-    return `<div class="kpi-card"><div class="kpi-accent-bar" style="background:${svcColors[i]}"></div><span class="kpi-icon">${svcEmoji[i]}</span><div class="kpi-lbl">${n}</div><div class="kpi-val" style="color:${svcColors[i]}">฿${v.toLocaleString()}</div><div class="sparkline">${sparkHtml}</div></div>`;
-  }).join('');
+   const svcCards=svcNames.map((n,i)=>{
+     const v=svcMap[n]||0;
+     const sparkVals=[40,60,45,80,65,90,75,100].map(()=>Math.round(20+Math.random()*80));
+     const mx=Math.max(...sparkVals);
+     const sparkHtml=sparkVals.map(v=>`<div class="spark-bar" style="height:${Math.round((v/mx)*22)}px;background:${svcColors[i]};opacity:0.6;"></div>`).join('');
+     return `<div class="kpi-card"><div class="kpi-accent-bar" style="background:${svcColors[i]}"></div><span class="kpi-icon">${svcEmoji[i]}</span><div class="kpi-lbl">${n}</div><div class="kpi-val" style="color:${svcColors[i]}">฿${v.toLocaleString()}</div><div class="sparkline">${sparkHtml}</div></div>`;
+   }).join('');
+   
+   // การ์ดยอดใช้เมมเบอร์
+   const{start:mStart,end:mEnd}=getDateRange(period,customDate);
+   const memUsedRecs=ALL.filter(r=>isSvc(r)&&r.payment==='Member'&&r.date>=mStart&&r.date<=mEnd);
+   const memUsedTotal=memUsedRecs.reduce((s,r)=>s+r.price,0);
+   const memUsedCount=memUsedRecs.length;
+   const memCard=`<div class="kpi-card" style="border-color:rgba(91,155,213,0.3);background:rgba(91,155,213,0.04);">
+     <div class="kpi-accent-bar" style="background:#5B9BD5"></div>
+     <span class="kpi-icon">💳</span>
+     <div class="kpi-lbl">ยอดใช้เมมเบอร์</div>
+     <div class="kpi-val" style="color:#2B6FA3">฿${memUsedTotal.toLocaleString()}</div>
+     <div class="kpi-sub">${memUsedCount} รายการ</div>
+   </div>`;
 
   const cmp=getMonthComparison();const isUp=cmp.diff>=0;
   document.getElementById('kpi-grid').innerHTML=`
     <div class="kpi-card kpi-full"><div><span class="kpi-icon">💸</span><div class="kpi-lbl">รายรับสุทธิ (หักค่ารูดบัตร)</div><div class="kpi-sub">${count} รายการ · ค่ารูดบัตร ฿${creditFee.toLocaleString()}</div></div><div class="kpi-val" style="color:var(--rose-deep)">฿${netRevenue.toLocaleString()}</div></div>
-    ${svcCards}
+    ${svcCards}${memCard}
     <div class="kpi-card"><span class="kpi-icon">🏅</span><div class="kpi-lbl">ค่าคอมบริการ</div><div class="kpi-val" style="color:var(--green)">฿${totalComm.toLocaleString()}</div><div class="kpi-sub">ทุกพนักงาน</div></div>
     <div class="kpi-card"><span class="kpi-icon">🎫</span><div class="kpi-lbl">คอมขายเมมเบอร์</div><div class="kpi-val" style="color:var(--purple)">฿${(memCommTotal||0).toLocaleString()}</div><div class="kpi-sub">฿${(memCommPerStaff||0).toLocaleString()} × ${staffCount||1} คน</div></div>
     <div class="kpi-card" style="grid-column:1/-1;background:${isUp?'rgba(45,203,142,0.05)':'rgba(212,83,126,0.05)'};border-color:${isUp?'rgba(45,203,142,0.2)':'rgba(212,83,126,0.2)'}">
