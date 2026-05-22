@@ -2212,7 +2212,7 @@ function finishLoad(){
   _lastLoadTime=Date.now();dataLoaded=true;
   document.getElementById('topbar-label').textContent='Live';
   render();
-  if(!_prevMonthLoaded){ loadMultiMonthArchives().then(function(){ if(currentPage==='dash') render6MonthChart(); }); }
+  if(!_prevMonthLoaded){ loadMultiMonthArchives().then(function(){ if(currentPage==='dash'){ render6MonthChart(); renderKPI(0,0,0,0,0,0,0,0,0,0); render(); } }); }
 }
 
 async function loadPrevMonthArchive(){
@@ -2251,10 +2251,24 @@ function getMonthComparison(){
     const creditFee=Math.round(creditRev*CREDIT_FEE_RATE);
     return cashSvcR.reduce((s,r)=>s+r.price,0)+memR.reduce((s,r)=>s+r.price,0)-creditFee;
   };
-  const thisStart=new Date(now.getFullYear(),now.getMonth(),1);const thisEnd=new Date(now.getFullYear(),now.getMonth()+1,0,23,59,59);
-  const thisRecs=ALL.filter(r=>r.date>=thisStart&&r.date<=thisEnd);const thisRev=calcNetFromArray(thisRecs);
-  const lastRev=_prevMonthLoaded?calcNetFromArray(_prevMonthRecords):ALL.filter(r=>{const lastStart=new Date(now.getFullYear(),now.getMonth()-1,1);const lastEnd=new Date(now.getFullYear(),now.getMonth(),0,23,59,59);return r.date>=lastStart&&r.date<=lastEnd;}).reduce((s,r)=>{if(isSvc(r)&&r.payment!=='Member')return s+r.price;if(isMem(r))return s+r.price;return s;},0);
-  const diff=thisRev-lastRev;const pct=lastRev>0?Math.round((diff/lastRev)*100):null;
+  const thisStart=new Date(now.getFullYear(),now.getMonth(),1);
+  const thisEnd=new Date(now.getFullYear(),now.getMonth()+1,0,23,59,59);
+  const thisRecs=ALL.filter(r=>r.date>=thisStart&&r.date<=thisEnd);
+  const thisRev=calcNetFromArray(thisRecs);
+
+  // ใช้ _prevMonthRecords ที่โหลดจาก archive แล้ว
+  const lastStart=new Date(now.getFullYear(),now.getMonth()-1,1);
+  const lastEnd=new Date(now.getFullYear(),now.getMonth(),0,23,59,59);
+  const lastRecs=_prevMonthRecords.filter(r=>r.date>=lastStart&&r.date<=lastEnd);
+  const lastRev=_prevMonthLoaded&&lastRecs.length>0
+    ? calcNetFromArray(lastRecs)
+    : ALL.filter(r=>r.date>=lastStart&&r.date<=lastEnd).reduce((s,r)=>{
+        if(isSvc(r)&&r.payment!=='Member')return s+r.price;
+        if(isMem(r))return s+r.price;return s;
+      },0);
+
+  const diff=thisRev-lastRev;
+  const pct=(lastRev>0)?Math.round((diff/lastRev)*100):null;
   return{thisRev,lastRev,diff,pct};
 }
 
