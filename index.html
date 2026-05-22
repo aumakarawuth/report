@@ -720,6 +720,474 @@ body{
 .page-loading-bar.show{transform:scaleX(1);animation:loadBar 1.2s ease infinite;}
 @keyframes loadBar{0%{transform:scaleX(0) translateX(0%)}50%{transform:scaleX(0.7) translateX(30%)}100%{transform:scaleX(0) translateX(100%)}}
 
+   
+   
+/* ═══════════════════════════════════════════════════════════
+   DARK MODE — วางก่อน
+═══════════════════════════════════════════════════════════ */
+
+[data-theme="dark"] {
+  --rose:       #F472A0;
+  --rose-deep:  #E8457A;
+  --rose-pale:  #2D1620;
+  --rose-b:     #5C2235;
+  --teal:       #34D399;
+  --teal-pale:  #0D2D22;
+  --teal-b:     #1A4D38;
+  --purple:     #A5A0FF;
+  --purple-pale:#1E1B3A;
+  --purple-b:   #38337A;
+  --amber:      #FCD34D;
+  --amber-pale: #2D2005;
+  --amber-b:    #5C420A;
+  --blue:       #60A5FA;
+  --blue-pale:  #0D1F3C;
+  --blue-b:     #1E3A6E;
+  --coral:      #FCA5A5;
+  --coral-pale: #2D0F0F;
+  --ink:        #F9FAFB;
+  --ink-soft:   #E5E7EB;
+  --ink-muted:  #9CA3AF;
+  --surface:    #111827;
+  --surface-2:  #1F2937;
+  --card:       #1F2937;
+  --border:     rgba(244,114,160,0.18);
+  --border-2:   rgba(244,114,160,0.28);
+  --green:      #34D399;
+  --gold:       #FCD34D;
+}
+
+[data-theme="dark"] body {
+  background: #111827;
+  color: #F9FAFB;
+}
+
+[data-theme="dark"] .topbar {
+  background: #0D1117;
+  border-bottom: 0.5px solid rgba(255,255,255,0.08);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.5);
+}
+
+[data-theme="dark"] .bnav {
+  background: #0D1117;
+  border-top: 0.5px solid rgba(255,255,255,0.08);
+  box-shadow: 0 -2px 20px rgba(0,0,0,0.5);
+}
+
+[data-theme="dark"] .period-tab {
+  background: #1F2937;
+  border-color: rgba(244,114,160,0.2);
+  color: #9CA3AF;
+}
+
+[data-theme="dark"] .period-tab.active {
+  background: linear-gradient(135deg,#E8457A,#B8365F);
+  color: #fff;
+}
+
+[data-theme="dark"] .cal-btn {
+  background: #1F2937;
+  border-color: rgba(244,114,160,0.25);
+}
+
+[data-theme="dark"] .cal-btn.open {
+  background: #374151;
+  border-color: var(--rose);
+}
+
+[data-theme="dark"] .cal-panel,
+[data-theme="dark"] .modal {
+  background: #1F2937;
+  border-color: rgba(244,114,160,0.2);
+}
+
+[data-theme="dark"] .pin-modal {
+  background: #1F2937;
+}
+
+[data-theme="dark"] .cal-day {
+  color: #E5E7EB;
+}
+
+[data-theme="dark"] .cal-day:active:not(.empty) {
+  background: #374151;
+}
+
+[data-theme="dark"] .cal-day.empty,
+[data-theme="dark"] .cal-day.future {
+  color: #374151;
+}
+
+[data-theme="dark"] .cal-nav {
+  border-color: rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .kpi-card,
+[data-theme="dark"] .chart-card,
+[data-theme="dark"] .donut-card,
+[data-theme="dark"] .staff-card,
+[data-theme="dark"] .g-card,
+[data-theme="dark"] .member-card,
+[data-theme="dark"] .staff-page-card,
+[data-theme="dark"] .expense-section,
+[data-theme="dark"] .staff-select-section,
+[data-theme="dark"] .extra-expense-section,
+[data-theme="dark"] .cfg-section,
+[data-theme="dark"] .month-pill {
+  background: #1F2937;
+  border-color: rgba(244,114,160,0.18);
+}
+
+[data-theme="dark"] .summary-result-card .result-rows {
+  background: #1F2937;
+}
+
+[data-theme="dark"] .tx-item:active,
+[data-theme="dark"] .member-card:active,
+[data-theme="dark"] .sheet-nav-item:active {
+  background: #374151;
+}
+
+[data-theme="dark"] .tx-section-hd {
+  background: #374151;
+}
+
+[data-theme="dark"] .g-card-hd,
+[data-theme="dark"] .expense-section-hd,
+[data-theme="dark"] .staff-select-hd,
+[data-theme="dark"] .cfg-section-hd,
+[data-theme="dark"] .extra-exp-hd {
+  border-color: rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .result-row {
+  border-color: rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .hero-block {
+  background: #1F2937;
+  border-color: rgba(244,114,160,0.2);
+}
+
+[data-theme="dark"] .hero-stat {
+  background: #374151;
+}
+
+[data-theme="dark"] .insight-bar {
+  background: #1E1B3A;
+  border-color: rgba(165,160,255,0.25);
+}
+
+[data-theme="dark"] .insight-title { color: #A5A0FF; }
+
+[data-theme="dark"] .mem-monthly-banner {
+  background: linear-gradient(135deg,rgba(52,211,153,0.08),rgba(96,165,250,0.08));
+  border-color: rgba(52,211,153,0.2);
+}
+
+[data-theme="dark"] .summary-period-banner {
+  background: linear-gradient(135deg,#0D1117,#1F2937);
+}
+
+[data-theme="dark"] .rec-filter-btn {
+  background: #1F2937;
+  border-color: rgba(244,114,160,0.2);
+  color: #9CA3AF;
+}
+
+[data-theme="dark"] .rec-filter-btn.active {
+  background: #111827;
+  color: #F9FAFB;
+  border-color: transparent;
+}
+
+[data-theme="dark"] .member-search input {
+  background: #1F2937;
+  border-color: rgba(244,114,160,0.2);
+  color: #F9FAFB;
+}
+
+[data-theme="dark"] .member-search input::placeholder { color: #6B7280; }
+
+[data-theme="dark"] .stat-box {
+  background: #374151;
+}
+
+[data-theme="dark"] .cal-nav-btn,
+[data-theme="dark"] .month-pill-nav {
+  background: #374151;
+  color: #E5E7EB;
+}
+
+[data-theme="dark"] .cal-nav-btn:active,
+[data-theme="dark"] .month-pill-nav:active {
+  background: #4B5563;
+}
+
+[data-theme="dark"] .pin-btn {
+  background: #374151;
+  border-color: rgba(255,255,255,0.1);
+  color: #F9FAFB;
+}
+
+[data-theme="dark"] .pin-btn:active {
+  background: #4B5563;
+}
+
+[data-theme="dark"] .pin-btn.del { color: #9CA3AF; }
+
+[data-theme="dark"] .pin-dot {
+  background: #374151;
+  border-color: rgba(244,114,160,0.25);
+}
+
+[data-theme="dark"] .cfg-input,
+[data-theme="dark"] .cfg-comm-input,
+[data-theme="dark"] .exp-input,
+[data-theme="dark"] .extra-item input {
+  background: #374151;
+  border-color: rgba(255,255,255,0.12);
+  color: #F9FAFB;
+}
+
+[data-theme="dark"] .cfg-input:focus,
+[data-theme="dark"] .cfg-comm-input:focus,
+[data-theme="dark"] .exp-input:focus,
+[data-theme="dark"] .extra-item input:focus {
+  background: #4B5563;
+  border-color: var(--rose);
+}
+
+[data-theme="dark"] .exp-input.fixed {
+  background: rgba(252,211,77,0.06);
+  border-color: rgba(252,211,77,0.3);
+  color: #FCD34D;
+}
+
+[data-theme="dark"] .staff-sel-btn {
+  background: #374151;
+  border-color: rgba(244,114,160,0.2);
+  color: #9CA3AF;
+}
+
+[data-theme="dark"] .staff-sel-btn:active {
+  background: #4B5563;
+  border-color: var(--rose);
+  color: var(--rose);
+}
+
+[data-theme="dark"] .staff-selected-summary {
+  background: rgba(244,114,160,0.06);
+  border-color: rgba(244,114,160,0.18);
+}
+
+[data-theme="dark"] .staff-checkbox-item {
+  border-color: rgba(255,255,255,0.05);
+}
+
+[data-theme="dark"] .staff-checkbox-item:active {
+  background: #374151;
+}
+
+[data-theme="dark"] .staff-cb-box {
+  background: #374151;
+  border-color: rgba(244,114,160,0.25);
+}
+
+[data-theme="dark"] .cfg-toggle-track {
+  background: rgba(255,255,255,0.15);
+}
+
+[data-theme="dark"] .staff-prog-bg,
+[data-theme="dark"] .goal-bar-track,
+[data-theme="dark"] .leg-bar-bg {
+  background: #374151;
+}
+
+[data-theme="dark"] .modal-bg {
+  background: rgba(0,0,0,0.75);
+}
+
+[data-theme="dark"] .modal-bal-big {
+  background: #2D1620;
+}
+
+[data-theme="dark"] .modal-hist-item {
+  border-color: rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] #sheet-overlay {
+  background: rgba(0,0,0,0.7) !important;
+}
+
+[data-theme="dark"] #sheet-team,
+[data-theme="dark"] #sheet-finance,
+[data-theme="dark"] #sheet-manage {
+  background: #1F2937 !important;
+}
+
+[data-theme="dark"] .sheet-nav-item:active {
+  background: #374151;
+}
+
+[data-theme="dark"] .cfg-bonus-preview {
+  background: rgba(52,211,153,0.06);
+  border-color: rgba(52,211,153,0.15);
+}
+
+[data-theme="dark"] .cfg-comm-item {
+  background: #374151;
+}
+
+[data-theme="dark"] input[type="number"]:not(.cfg-input):not(.cfg-comm-input):not(.exp-input),
+[data-theme="dark"] input[type="text"]:not(.cfg-input):not(.extra-item input),
+[data-theme="dark"] input[type="search"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] select {
+  background: #374151 !important;
+  color: #F9FAFB !important;
+  border-color: rgba(255,255,255,0.12) !important;
+}
+
+[data-theme="dark"] .summary-result-card .result-hd {
+  background: #0D1117 !important;
+}
+
+[data-theme="dark"] #archive-bar {
+  background: linear-gradient(135deg,#0D1117,#1F2937) !important;
+}
+
+[data-theme="dark"] #archive-bar select {
+  background: rgba(255,255,255,0.08) !important;
+  color: #fff !important;
+  border-color: rgba(244,114,160,0.4) !important;
+}
+
+[data-theme="dark"] .export-xlsx {
+  background: rgba(52,211,153,0.08);
+  border-color: rgba(52,211,153,0.25);
+  color: #34D399;
+}
+
+[data-theme="dark"] .export-pdf {
+  background: rgba(244,114,160,0.08);
+  border-color: rgba(244,114,160,0.25);
+  color: #F472A0;
+}
+
+[data-theme="dark"] .cfg-row {
+  border-color: rgba(255,255,255,0.06);
+}
+
+[data-theme="dark"] .cfg-tier-list .cfg-tier-item input {
+  background: #374151;
+  border-color: rgba(255,255,255,0.12);
+  color: #F9FAFB;
+}
+
+[data-theme="dark"] .goal-banner,
+[data-theme="dark"] #goal-banner {
+  background: #1F2937 !important;
+  border-color: rgba(244,114,160,0.18) !important;
+}
+
+[data-theme="dark"] .sel-badge {
+  background: linear-gradient(135deg,#E8457A,#B8365F);
+}
+
+[data-theme="dark"] .g-card-hd {
+  border-color: rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .bar-chart .bar-val,
+[data-theme="dark"] .bar-chart .bar-lbl {
+  color: #9CA3AF;
+}
+
+[data-theme="dark"] .extra-item .del-btn {
+  background: rgba(244,114,160,0.12);
+  color: #F472A0;
+}
+
+[data-theme="dark"] .add-extra-btn {
+  background: #2D1620;
+  border-color: rgba(244,114,160,0.25);
+  color: #F472A0;
+}
+
+[data-theme="dark"] .member-bal-lbl,
+[data-theme="dark"] .hs-lbl,
+[data-theme="dark"] .kpi-lbl,
+[data-theme="dark"] .kpi-sub,
+[data-theme="dark"] .tx-meta,
+[data-theme="dark"] .tx-time,
+[data-theme="dark"] .hero-sub,
+[data-theme="dark"] .hero-eyebrow,
+[data-theme="dark"] .chart-sub,
+[data-theme="dark"] .donut-sub,
+[data-theme="dark"] .page-hd-sub,
+[data-theme="dark"] .exp-row-note,
+[data-theme="dark"] .staff-page-count,
+[data-theme="dark"] .stat-lbl,
+[data-theme="dark"] .staff-breakdown,
+[data-theme="dark"] .cfg-row-sub,
+[data-theme="dark"] .cfg-section-desc,
+[data-theme="dark"] .cfg-comm-svc,
+[data-theme="dark"] .member-phone,
+[data-theme="dark"] .modal-hist-date,
+[data-theme="dark"] .sss-lbl,
+[data-theme="dark"] .leg-name,
+[data-theme="dark"] .staff-svc-name,
+[data-theme="dark"] .staff-rev,
+[data-theme="dark"] .staff-mem-row-lbl {
+  color: #9CA3AF;
+}
+
+[data-theme="dark"] .empty { color: #6B7280; }
+
+[data-theme="dark"] .pin-cancel { color: #6B7280; }
+
+[data-theme="dark"] .pin-title,
+[data-theme="dark"] .modal-ttl,
+[data-theme="dark"] .page-hd-title,
+[data-theme="dark"] .logo-txt,
+[data-theme="dark"] .sec-title,
+[data-theme="dark"] .chart-ttl,
+[data-theme="dark"] .g-card-ttl,
+[data-theme="dark"] .staff-name,
+[data-theme="dark"] .member-name,
+[data-theme="dark"] .tx-svc,
+[data-theme="dark"] .cfg-row-label,
+[data-theme="dark"] .staff-cb-name,
+[data-theme="dark"] .staff-page-name {
+  color: #F9FAFB;
+}
+
+[data-theme="dark"] .live-pill {
+  background: rgba(52,211,153,0.12);
+  border-color: rgba(52,211,153,0.25);
+}
+
+/* ── Dark toggle button ─────────────────────────────────── */
+.dark-toggle {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: rgba(255,255,255,0.75);
+  border-radius: 9px;
+  padding: 7px 9px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  min-height: 34px;
+  min-width: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.dark-toggle:active { background: rgba(255,255,255,0.22); }
+
+   
 /* snapshot view */
 #snapshot-view{display:none;}
 </style>
@@ -733,7 +1201,8 @@ body{
   </div>
   <div class="topbar-right">
     <div class="live-pill"><div class="live-dot"></div><span id="topbar-label">Live</span></div>
-    <button class="refresh-btn" id="refresh-btn">🔄</button>
+   <button class="refresh-btn" id="refresh-btn">🔄</button>
+   <button class="dark-toggle" id="dark-toggle" title="สลับโหมดกลางคืน" aria-label="Toggle dark mode">🌙</button>
   </div>
 </div>
 
@@ -1893,6 +2362,33 @@ function hideTip(){document.getElementById('tip').style.opacity='0';}
   document.addEventListener('touchmove',function(e){if(_sl)return;const t=e.touches[0];const dx=Math.abs(t.clientX-_sx);const dy=Math.abs(t.clientY-_sy);if(dy>dx&&dy>10)_sl=true;},{passive:true});
   document.addEventListener('touchend',function(e){if(_sl)return;const t=e.changedTouches[0];const dx=t.clientX-_sx;const dy=Math.abs(t.clientY-_sy);const dt=Date.now()-_st;if(Math.abs(dx)>60&&dy<60&&dt<350){const idx=PAGES.indexOf(currentPage);if(idx===-1)return;let nextIdx=dx<0?idx+1:idx-1;if(nextIdx<0||nextIdx>=PAGES.length)return;const nextPage=PAGES[nextIdx];const btn=document.querySelector(`.bnav-item[onclick*="goPage('${nextPage}'"]`);if(btn)goPage(nextPage,btn);}},{passive:true});
 
+
+   // ── Dark Mode Toggle ──────────────────────────────────────
+(function(){
+  var html = document.documentElement;
+  var btn  = document.getElementById('dark-toggle');
+  var saved = localStorage.getItem('nk_theme');
+  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var isDark = saved ? (saved === 'dark') : prefersDark;
+ 
+  function applyTheme(dark) {
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    if (btn) btn.textContent = dark ? '☀️' : '🌙';
+    if (btn) btn.title = dark ? 'สลับโหมดกลางวัน' : 'สลับโหมดกลางคืน';
+    localStorage.setItem('nk_theme', dark ? 'dark' : 'light');
+    isDark = dark;
+  }
+ 
+  applyTheme(isDark);
+ 
+  if (btn) btn.addEventListener('click', function() { applyTheme(!isDark); });
+ 
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+    if (!localStorage.getItem('nk_theme')) applyTheme(e.matches);
+  });
+})();
+
+   
   // Auto-refresh
   let _autoRefreshTimer=null;
   function startAutoRefresh(){if(_autoRefreshTimer)clearInterval(_autoRefreshTimer);_autoRefreshTimer=setInterval(function(){if(document.visibilityState==='visible'&&currentPage==='dash')reloadData();},5*60*1000);}
