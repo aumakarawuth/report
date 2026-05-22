@@ -2635,7 +2635,18 @@ function renderMembers(){
     if(daysLeft!==null){if(daysLeft<=0){expBadge=`<span class="exp-badge exp-badge-expired">❌ หมดอายุแล้ว</span>`;expColor='rgba(232,69,122,0.4)';}else if(daysLeft<=30){expBadge=`<span class="exp-badge exp-badge-soon">⚠️ เหลือ ${daysLeft} วัน</span>`;expColor='rgba(240,184,74,0.5)';}else if(daysLeft<=90){expBadge=`<span class="exp-badge exp-badge-warn">🟡 เหลือ ${daysLeft} วัน</span>`;}}
     const card=document.createElement('div');card.className='member-card';if(expColor)card.style.borderColor=expColor;
     card.addEventListener('click',function(e){e.preventDefault();openMemberModal(phone,m);});card.addEventListener('touchend',function(e){e.preventDefault();openMemberModal(phone,m);});
-    card.innerHTML=`<div class="member-avatar">${daysLeft!==null&&daysLeft<=0?'🔒':'👤'}</div><div class="member-info"><div class="member-name">${m.name}</div><div class="member-phone">📞 ${phone}</div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px;">${m.topupCount?`<span class="member-topup-badge">เติม ${m.topupCount} ครั้ง</span>`:''} ${expBadge}</div></div><div class="member-bal-wrap"><div class="member-bal ${lowBal?'low':''}">฿${(m.balance||0).toLocaleString()}</div><div class="member-bal-lbl">${lowBal?'⚠️ ยอดต่ำ':'คงเหลือ'}</div></div>`;
+    // สร้าง expiry display string
+    var expDisplay = '-';
+    var expDateStr = '';
+    if(exp && !isNaN(exp)){
+      var thMonths2 = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+      expDateStr = exp.getDate() + ' ' + thMonths2[exp.getMonth()] + ' ' + (exp.getFullYear()+543);
+      expDisplay = expDateStr;
+    }
+    var expColor2 = daysLeft===null ? 'var(--ink-muted)' : daysLeft<=0 ? 'var(--rose-deep)' : daysLeft<=30 ? '#E8700A' : daysLeft<=90 ? '#B07800' : 'var(--teal)';
+    var expIcon   = daysLeft===null ? '📅' : daysLeft<=0 ? '❌' : daysLeft<=30 ? '🔴' : daysLeft<=90 ? '🟡' : '🟢';
+
+    card.innerHTML=`<div class="member-avatar">${daysLeft!==null&&daysLeft<=0?'🔒':'👤'}</div><div class="member-info"><div class="member-name">${m.name}</div><div class="member-phone">📞 ${phone}${m.memberCode&&m.memberCode!=='-'?' · รหัส '+m.memberCode:''}</div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">${m.topupCount?`<span class="member-topup-badge">เติม ${m.topupCount} ครั้ง</span>`:''} ${expBadge}</div><div style="display:flex;align-items:center;gap:5px;margin-top:4px;font-size:11px;color:${expColor2};font-weight:600;">${expIcon} หมดอายุ: ${expDisplay}${daysLeft!==null&&daysLeft>0?' (เหลือ '+daysLeft+' วัน)':daysLeft===0?' (วันนี้)':daysLeft!==null?' (หมดแล้ว)':''}</div></div><div class="member-bal-wrap"><div class="member-bal ${lowBal?'low':''}">฿${(m.balance||0).toLocaleString()}</div><div class="member-bal-lbl">${lowBal?'⚠️ ยอดต่ำ':'คงเหลือ'}</div></div>`;
     list.appendChild(card);
   });
 }
