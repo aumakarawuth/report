@@ -2211,8 +2211,33 @@ function processRecords(rows){
 function finishLoad(){
   _lastLoadTime=Date.now();dataLoaded=true;
   document.getElementById('topbar-label').textContent='Live';
+  
+  // DEBUG — ดูใน Browser Console (F12)
+  console.log('=== finishLoad ===');
+  console.log('ALL records count:', ALL.length);
+  console.log('ALL sample (first 3):', ALL.slice(0,3).map(r=>({date:r.date.toISOString().slice(0,10),svc:r.service,price:r.price,pay:r.payment})));
+  
+  const now=new Date();
+  const thisStart=new Date(now.getFullYear(),now.getMonth(),1);
+  const lastStart=new Date(now.getFullYear(),now.getMonth()-1,1);
+  const lastEnd=new Date(now.getFullYear(),now.getMonth(),0,23,59,59);
+  const thisRecs=ALL.filter(r=>r.date>=thisStart);
+  const lastRecs=ALL.filter(r=>r.date>=lastStart&&r.date<=lastEnd);
+  console.log('This month records in ALL:', thisRecs.length, '฿'+thisRecs.reduce((s,r)=>s+r.price,0).toLocaleString());
+  console.log('Last month records in ALL:', lastRecs.length, '฿'+lastRecs.reduce((s,r)=>s+r.price,0).toLocaleString());
+  console.log('archiveSheetsByKey:', JSON.stringify(archiveSheetsByKey));
+  
   render();
-  if(!_prevMonthLoaded){ loadMultiMonthArchives().then(function(){ if(currentPage==='dash'){ render6MonthChart(); renderKPI(0,0,0,0,0,0,0,0,0,0); render(); } }); }
+  loadMultiMonthArchives().then(function(){
+    console.log('=== after loadMultiMonthArchives ===');
+    console.log('_prevMonthRecords count:', _prevMonthRecords.length);
+    console.log('_prevMonthRecords sample (first 3):', _prevMonthRecords.slice(0,3).map(r=>({date:r.date.toISOString().slice(0,10),svc:r.service,price:r.price})));
+    
+    const lastInPrev=_prevMonthRecords.filter(r=>r.date>=lastStart&&r.date<=lastEnd);
+    console.log('Last month in _prevMonthRecords:', lastInPrev.length, '฿'+lastInPrev.reduce((s,r)=>s+r.price,0).toLocaleString());
+    
+    if(currentPage==='dash') render();
+  });
 }
 
 async function loadPrevMonthArchive(){
@@ -2878,7 +2903,10 @@ function sheetGo(page){closeNavSheet();document.querySelectorAll('.bnav-item').f
 function sheetGoPin(page){closeNavSheet();pinBuffer='';pinCallback=()=>sheetGo(page);updatePinDots();document.getElementById('pin-error-msg').textContent='';document.getElementById('pin-sub-txt').textContent={settings:'กรอก PIN เพื่อเข้าหน้าตั้งค่า',summary:'กรอก PIN เพื่อเข้าหน้าสรุปกำไร',payroll:'กรอก PIN เพื่อเข้าหน้าเงินเดือน'}[page]||'กรอก PIN เพื่อเข้าถึง';document.getElementById('pin-modal-bg').classList.add('show');}
 
 // Archive
-function renderArchiveSelector(archives){archiveSheetsByKey={};(archives||[]).forEach(function(a){var key=a.yearMonth||_parseArchiveKey(a.name,a.label);if(key)archiveSheetsByKey[key]=a.name;});const bar=document.getElementById('archive-bar');const select=document.getElementById('archive-select');if(!archives||!archives.length){bar.style.display='none';return;}bar.style.display='flex';while(select.options.length>1)select.remove(1);archives.forEach(function(a){const opt=document.createElement('option');opt.value=a.name;opt.textContent='📦 '+a.label;select.appendChild(opt);});select.value=archiveSheetName||'';}
+function renderArchiveSelector(archives){
+     console.log('=== renderArchiveSelector ===');
+  console.log('archives received:', JSON.stringify(archives));
+   archiveSheetsByKey={};(archives||[]).forEach(function(a){var key=a.yearMonth||_parseArchiveKey(a.name,a.label);if(key)archiveSheetsByKey[key]=a.name;});const bar=document.getElementById('archive-bar');const select=document.getElementById('archive-select');if(!archives||!archives.length){bar.style.display='none';return;}bar.style.display='flex';while(select.options.length>1)select.remove(1);archives.forEach(function(a){const opt=document.createElement('option');opt.value=a.name;opt.textContent='📦 '+a.label;select.appendChild(opt);});select.value=archiveSheetName||'';}
 function switchArchive(sheetName){archiveSheetName=sheetName||null;const badge=document.getElementById('archive-badge');const select=document.getElementById('archive-select');if(archiveSheetName){badge.style.display='block';const opt=select.options[select.selectedIndex];document.getElementById('archive-badge-lbl').textContent=opt?opt.textContent.replace('📦 ',''):sheetName;document.querySelectorAll('[data-page-tab="dash"]').forEach(b=>{b.classList.remove('active');b.style.opacity='0.4';b.disabled=true;});period='all';customDate=null;document.getElementById('sel-badge').classList.remove('show');document.getElementById('topbar-label').textContent='📦 '+(opt?opt.textContent.replace('📦 ',''):'');}else{badge.style.display='none';document.getElementById('archive-badge-lbl').textContent='—';document.querySelectorAll('[data-page-tab="dash"]').forEach((b,i)=>{b.style.opacity='1';b.disabled=false;if(i===0)b.classList.add('active');});period='day';document.getElementById('topbar-label').textContent='Live';}dataLoaded=false;showLoading();loadData();}
 
 var archiveSheetsByKey={};var _currentLoadedSheet=null;
