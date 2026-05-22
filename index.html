@@ -2173,6 +2173,7 @@ function loadData(){
 }
 
 function processMemberData(rows){
+   console.log('RAW members rows:', JSON.stringify(rows.slice(0,3)));
   MEMBERS={};
   rows.forEach(function(r){
     if(!r.phone) return;
