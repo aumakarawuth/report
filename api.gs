@@ -116,6 +116,53 @@ function _handleWebAPI(e) {
         result = getExpenseData(p.periodKey || 'month');
         break;
 
+            // ── Analytics ──────────────────────────────────────────
+      case 'getHeatmapData':
+        result = getHeatmapData(p.periodKey || '');
+        break;
+ 
+      case 'getStaffComparison':
+        result = getStaffComparison(p.months || 3);
+        break;
+ 
+      case 'getServiceAnalytics':
+        result = getServiceAnalytics(p.periodKey || '');
+        break;
+ 
+      case 'getRetentionData':
+        result = getRetentionData(p.periodKey || '');
+        break;
+ 
+      // ── Member ─────────────────────────────────────────────
+      case 'getMemberStats':
+        result = getMemberStats();
+        break;
+ 
+      case 'exportMembersCSV':
+        result = exportMembersCSV();
+        break;
+ 
+      // ── Settings ───────────────────────────────────────────
+      case 'getShopHours':
+        result = getShopHours();
+        break;
+ 
+      case 'saveShopHours':
+        result = saveShopHours(p);
+        break;
+ 
+      case 'getPromoList':
+        result = getPromoList();
+        break;
+ 
+      case 'savePromo':
+        result = savePromo(p);
+        break;
+ 
+      case 'deletePromo':
+        result = deletePromo(p);
+        break;
+
       default:
         result = { ok: false, error: 'Unknown action: ' + action };
     }
