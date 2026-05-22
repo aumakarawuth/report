@@ -2174,10 +2174,32 @@ function loadData(){
 
 function processMemberData(rows){
   MEMBERS={};
-  rows.forEach(r=>{
-    if(r.phone)MEMBERS[String(r.phone)]={name:r.name||'-',balance:Number(r.balance)||0,lineId:String(r.lineId||'-'),memberCode:String(r.memberCode||'-'),expiry:r.expiry||null};
+  rows.forEach(function(r){
+    if(!r.phone) return;
+    // parse expiry จาก GAS — อาจเป็น string "dd/MM/yyyy" หรือ ISO หรือ null
+    var expiry = null;
+    if(r.expiry){
+      var es = String(r.expiry).trim();
+      var parts = es.split('/');
+      if(parts.length === 3){
+        var ed = parseInt(parts[0]), em = parseInt(parts[1])-1, ey = parseInt(parts[2]);
+        var d = new Date(ey, em, ed);
+        if(!isNaN(d.getTime())) expiry = d;
+      } else {
+        var d2 = new Date(es);
+        if(!isNaN(d2.getTime())) expiry = d2;
+      }
+    }
+    MEMBERS[String(r.phone)] = {
+      name:       r.name || '-',
+      balance:    Number(r.balance) || 0,
+      lineId:     String(r.lineId || '-'),
+      memberCode: String(r.memberCode || '-'),
+      expiry:     expiry
+    };
   });
 }
+   
 function processRecords(rows){
   ALL=rows.map(r=>{
     if(Array.isArray(r))return{date:new Date(r[0]),staffName:r[3]||'-',service:r[4]||'-',price:Number(r[5])||0,payment:r[6]||'Cash',phone:r[7]||'-'};
@@ -2630,7 +2652,26 @@ function renderMembers(){
   const list=document.getElementById('mem-list');list.innerHTML='';
   if(!filtered.length){list.innerHTML='<div class="empty"><div class="empty-ico">🔍</div>ไม่พบสมาชิก</div>';return;}
   filtered.forEach(phone=>{
-    const m=memMap[phone];const lowBal=m.balance<500;const exp=m.expiry?new Date(m.expiry):null;const daysLeft=exp&&!isNaN(exp)?Math.ceil((exp-now3)/86400000):null;
+    const m=memMap[phone];const lowBal=m.balance<500;
+     // parse dd/MM/yyyy หรือ Date object จาก Sheet
+    var exp = null;
+    if(m.expiry){
+      if(m.expiry instanceof Date){
+        exp = m.expiry;
+      } else {
+        var expStr = String(m.expiry).trim();
+        // รองรับ dd/MM/yyyy และ dd/M/yyyy
+        var expParts = expStr.split('/');
+        if(expParts.length === 3){
+          var ed = parseInt(expParts[0]), em = parseInt(expParts[1])-1, ey = parseInt(expParts[2]);
+          exp = new Date(ey, em, ed);
+        } else {
+          exp = new Date(expStr);
+        }
+        if(isNaN(exp.getTime())) exp = null;
+      }
+    }
+     const daysLeft=exp&&!isNaN(exp)?Math.ceil((exp-now3)/86400000):null;
     let expBadge='',expColor='';
     if(daysLeft!==null){if(daysLeft<=0){expBadge=`<span class="exp-badge exp-badge-expired">❌ หมดอายุแล้ว</span>`;expColor='rgba(232,69,122,0.4)';}else if(daysLeft<=30){expBadge=`<span class="exp-badge exp-badge-soon">⚠️ เหลือ ${daysLeft} วัน</span>`;expColor='rgba(240,184,74,0.5)';}else if(daysLeft<=90){expBadge=`<span class="exp-badge exp-badge-warn">🟡 เหลือ ${daysLeft} วัน</span>`;}}
     const card=document.createElement('div');card.className='member-card';if(expColor)card.style.borderColor=expColor;
