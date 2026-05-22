@@ -2581,11 +2581,11 @@ function renderBar(recs,creditFee=0){
   }
 
   const vals=Object.values(groups);
-  const maxV=Math.max(...vals,1);
+  const maxV=Math.max(...Object.values(groups),1);
   const feeRatio=totalRev>0?creditFee/totalRev:0;
 
   Object.entries(groups).forEach(([lbl,val],i)=>{
-    const netVal=Math.round(val*(1-feeRatio));
+    const netVal=Math.round(val-(val/totalRev)*creditFee);const h=Math.max((netVal/maxV)*110,netVal>0?6:2);
     const h=Math.max((val/maxV)*110, val>0?8:2);
     const g=BAR_COLS[i%BAR_COLS.length];
     const div=document.createElement('div');div.className='bar-grp';
