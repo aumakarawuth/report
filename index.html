@@ -2269,31 +2269,32 @@ function getStaffMemberComm(){const now=new Date();const{start,end}=getMonthRang
 
 function getMonthComparison(){
   const now=new Date();
-  const calcNetFromArray=(recs)=>{
-    const svcR=recs.filter(r=>isSvc(r));const memR=recs.filter(r=>isMem(r));
+  const calcNet=(recs)=>{
+    const svcR=recs.filter(r=>isSvc(r));
+    const memR=recs.filter(r=>isMem(r));
     const cashSvcR=svcR.filter(r=>r.payment!=='Member');
-    const creditRev=(cashSvcR.filter(r=>r.payment==='Credit').reduce((s,r)=>s+r.price,0))+(memR.filter(r=>r.payment==='Credit').reduce((s,r)=>s+r.price,0));
+    const creditRev=(cashSvcR.filter(r=>r.payment==='Credit').reduce((s,r)=>s+r.price,0))
+                   +(memR.filter(r=>r.payment==='Credit').reduce((s,r)=>s+r.price,0));
     const creditFee=Math.round(creditRev*CREDIT_FEE_RATE);
     return cashSvcR.reduce((s,r)=>s+r.price,0)+memR.reduce((s,r)=>s+r.price,0)-creditFee;
   };
+
+  // เดือนนี้ — อยู่ใน ALL
   const thisStart=new Date(now.getFullYear(),now.getMonth(),1);
   const thisEnd=new Date(now.getFullYear(),now.getMonth()+1,0,23,59,59);
-  const thisRecs=ALL.filter(r=>r.date>=thisStart&&r.date<=thisEnd);
-  const thisRev=calcNetFromArray(thisRecs);
+  const thisRev=calcNet(ALL.filter(r=>r.date>=thisStart&&r.date<=thisEnd));
 
-  // ใช้ _prevMonthRecords ที่โหลดจาก archive แล้ว
+  // เดือนที่แล้ว — ต้องหาจาก _prevMonthRecords
   const lastStart=new Date(now.getFullYear(),now.getMonth()-1,1);
   const lastEnd=new Date(now.getFullYear(),now.getMonth(),0,23,59,59);
-  const lastRecs=_prevMonthRecords.filter(r=>r.date>=lastStart&&r.date<=lastEnd);
-  const lastRev=_prevMonthLoaded&&lastRecs.length>0
-    ? calcNetFromArray(lastRecs)
-    : ALL.filter(r=>r.date>=lastStart&&r.date<=lastEnd).reduce((s,r)=>{
-        if(isSvc(r)&&r.payment!=='Member')return s+r.price;
-        if(isMem(r))return s+r.price;return s;
-      },0);
+
+  // รวม ALL + _prevMonthRecords แล้ว filter เดือนที่แล้ว
+  const allSources=ALL.concat(_prevMonthRecords);
+  const lastRecs=allSources.filter(r=>r.date>=lastStart&&r.date<=lastEnd);
+  const lastRev=lastRecs.length>0 ? calcNet(lastRecs) : 0;
 
   const diff=thisRev-lastRev;
-  const pct=(lastRev>0)?Math.round((diff/lastRev)*100):null;
+  const pct=lastRev>0 ? Math.round((diff/lastRev)*100) : null;
   return{thisRev,lastRev,diff,pct};
 }
 
@@ -2389,7 +2390,7 @@ function render6MonthChart(){
   var months = [];
   
   // รวม records ทั้งหมด: current + prev month archive
-  var allAvailable = ALL.concat(_prevMonthLoaded ? _prevMonthRecords : []);
+  var allAvailable = ALL.concat(_prevMonthRecords);
   
   for(var i = 5; i >= 0; i--){
     var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -2454,7 +2455,7 @@ function renderPeakHours(){
    async function loadMultiMonthArchives(){
   var now = new Date();
   var promises = [];
-  for(var i = 2; i <= 5; i++){
+  for(var i = 1; i <= 5; i++){
     var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     var key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
     var sheetName = archiveSheetsByKey[key];
