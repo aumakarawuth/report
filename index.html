@@ -1168,6 +1168,35 @@ body{
   border-color: rgba(52,211,153,0.25);
 }
 
+   [data-theme="dark"] .pin-modal {
+  background: #1F2937;
+}
+[data-theme="dark"] .pin-dot {
+  background: #374151;
+  border-color: rgba(244,114,160,0.25);
+}
+[data-theme="dark"] .pin-dot.filled {
+  background: var(--rose);
+  border-color: var(--rose);
+}
+[data-theme="dark"] .pin-dot.error {
+  background: #B8365F;
+  border-color: #B8365F;
+}
+[data-theme="dark"] .pin-btn {
+  background: #374151;
+  border-color: rgba(255,255,255,0.1);
+  color: #F9FAFB;
+}
+[data-theme="dark"] .pin-btn:active {
+  background: #4B5563;
+}
+[data-theme="dark"] .pin-btn.del { color: #9CA3AF; }
+[data-theme="dark"] .pin-title,
+[data-theme="dark"] .pin-sub { color: #F9FAFB; }
+[data-theme="dark"] .pin-cancel { color: #6B7280; }
+[data-theme="dark"] .pin-error-msg { color: #F472A0; }
+
 /* ── Dark toggle button ─────────────────────────────────── */
 .dark-toggle {
   background: rgba(255,255,255,0.1);
@@ -2160,7 +2189,7 @@ function finishLoad(){
   _lastLoadTime=Date.now();dataLoaded=true;
   document.getElementById('topbar-label').textContent='Live';
   render();
-  if(!_prevMonthLoaded){loadPrevMonthArchive().then(()=>{if(currentPage==='dash')render();});}
+  if(!_prevMonthLoaded){ loadMultiMonthArchives().then(function(){ if(currentPage==='dash') render6MonthChart(); }); }
 }
 
 async function loadPrevMonthArchive(){
@@ -2294,12 +2323,61 @@ function renderInsightBar(svcR,memR,netRevenue,cmp){
 }
 
 function render6MonthChart(){
-  const now=new Date();const months=[];
-  for(let i=5;i>=0;i--){const y=now.getFullYear(),m=now.getMonth()-i;const d=new Date(y,m,1);const{start,end}=getMonthRange(d.getFullYear(),d.getMonth());const svcR=ALL.filter(r=>isSvc(r)&&r.date>=start&&r.date<=end);const memR=ALL.filter(r=>isMem(r)&&r.date>=start&&r.date<=end);const cashSvcR=svcR.filter(r=>r.payment!=='Member');const creditRev=(cashSvcR.filter(r=>r.payment==='Credit').reduce((s,r)=>s+r.price,0))+(memR.filter(r=>r.payment==='Credit').reduce((s,r)=>s+r.price,0));const creditFee=Math.round(creditRev*CREDIT_FEE_RATE);const net=cashSvcR.reduce((s,r)=>s+r.price,0)+memR.reduce((s,r)=>s+r.price,0)-creditFee;months.push({label:TH_MONTHS_SHORT[d.getMonth()],net,count:svcR.length+memR.length});}
-  const maxVal=Math.max(...months.map(m=>m.net),1);
-  const bars=months.map((m,i)=>{const h=Math.max((m.net/maxVal)*90,m.net>0?5:2);const isLast=i===5;const col=isLast?'#D4537E':'#534AB7';return`<div class="bar-grp" style="min-width:32px;"><div class="bar-val" style="font-size:9px;">${m.net>0?'฿'+(m.net>=1000?Math.round(m.net/1000)+'K':m.net.toLocaleString()):''}</div><div class="bar" style="height:${h}px;background:${col};opacity:${m.net>0?isLast?1:0.65:0.15};border-radius:6px 6px 2px 2px;"></div><div class="bar-lbl" style="font-size:9px;${isLast?'color:var(--rose);font-weight:700':''}">${m.label}</div></div>`;}).join('');
-  const total6=months.reduce((s,m)=>s+m.net,0);const avg6=Math.round(total6/6);
-  document.getElementById('chart-6m').innerHTML=`<div style="display:flex;align-items:flex-end;gap:5px;height:100px;padding:8px 2px 0;">${bars}</div><div style="display:flex;justify-content:space-between;margin-top:10px;padding:9px 10px;background:var(--surface-2);border-radius:10px;"><div style="text-align:center;"><div style="font-size:10px;color:var(--ink-muted);font-weight:600;margin-bottom:2px;">รวม 6 เดือน</div><div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--ink);">฿${total6.toLocaleString()}</div></div><div style="width:1px;background:var(--border);"></div><div style="text-align:center;"><div style="font-size:10px;color:var(--ink-muted);font-weight:600;margin-bottom:2px;">เฉลี่ย/เดือน</div><div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--purple);">฿${avg6.toLocaleString()}</div></div></div>`;
+  var now = new Date();
+  var months = [];
+  
+  // รวม records ทั้งหมด: current + prev month archive
+  var allAvailable = ALL.concat(_prevMonthLoaded ? _prevMonthRecords : []);
+  
+  for(var i = 5; i >= 0; i--){
+    var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    var start = new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0);
+    var end   = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59);
+    
+    var svcR = allAvailable.filter(function(r){ return isSvc(r) && r.date >= start && r.date <= end; });
+    var memR = allAvailable.filter(function(r){ return isMem(r) && r.date >= start && r.date <= end; });
+    var cashSvcR = svcR.filter(function(r){ return r.payment !== 'Member'; });
+    var creditRev = (cashSvcR.filter(function(r){ return r.payment === 'Credit'; }).reduce(function(s,r){ return s+r.price; }, 0))
+                  + (memR.filter(function(r){ return r.payment === 'Credit'; }).reduce(function(s,r){ return s+r.price; }, 0));
+    var creditFee = Math.round(creditRev * CREDIT_FEE_RATE);
+    var net = cashSvcR.reduce(function(s,r){ return s+r.price; }, 0)
+            + memR.reduce(function(s,r){ return s+r.price; }, 0)
+            - creditFee;
+    
+    months.push({
+      label: TH_MONTHS_SHORT[d.getMonth()],
+      net: net,
+      count: svcR.length + memR.length
+    });
+  }
+  
+  var maxVal = Math.max.apply(null, months.map(function(m){ return m.net; }).concat([1]));
+  var total6  = months.reduce(function(s,m){ return s + m.net; }, 0);
+  var avg6    = Math.round(total6 / 6);
+  
+  var bars = months.map(function(m, i){
+    var h = Math.max((m.net / maxVal) * 90, m.net > 0 ? 5 : 2);
+    var isLast = (i === 5);
+    var col = isLast ? '#D4537E' : '#534AB7';
+    var valLabel = m.net > 0
+      ? ('฿' + (m.net >= 1000 ? Math.round(m.net/1000) + 'K' : m.net.toLocaleString()))
+      : '';
+    return '<div class="bar-grp" style="min-width:32px;">'
+      + '<div class="bar-val" style="font-size:9px;">' + valLabel + '</div>'
+      + '<div class="bar" style="height:' + h + 'px;background:' + col + ';opacity:' + (m.net > 0 ? (isLast ? 1 : 0.65) : 0.15) + ';border-radius:6px 6px 2px 2px;"></div>'
+      + '<div class="bar-lbl" style="font-size:9px;' + (isLast ? 'color:var(--rose);font-weight:700' : '') + '">' + m.label + '</div>'
+      + '</div>';
+  }).join('');
+  
+  document.getElementById('chart-6m').innerHTML =
+    '<div style="display:flex;align-items:flex-end;gap:5px;height:100px;padding:8px 2px 0;">' + bars + '</div>'
+    + '<div style="display:flex;justify-content:space-between;margin-top:10px;padding:9px 10px;background:var(--surface-2);border-radius:10px;">'
+    + '<div style="text-align:center;"><div style="font-size:10px;color:var(--ink-muted);font-weight:600;margin-bottom:2px;">รวม 6 เดือน</div>'
+    + '<div style="font-family:\'Playfair Display\',serif;font-size:16px;font-weight:700;color:var(--ink);">฿' + total6.toLocaleString() + '</div></div>'
+    + '<div style="width:1px;background:var(--border);"></div>'
+    + '<div style="text-align:center;"><div style="font-size:10px;color:var(--ink-muted);font-weight:600;margin-bottom:2px;">เฉลี่ย/เดือน</div>'
+    + '<div style="font-family:\'Playfair Display\',serif;font-size:16px;font-weight:700;color:var(--purple);">฿' + avg6.toLocaleString() + '</div></div>'
+    + '</div>';
 }
 
 function renderPeakHours(){
@@ -2308,6 +2386,45 @@ function renderPeakHours(){
   const medals=['🥇','🥈','🥉'];const colors=['var(--gold)','#A0A0B0','#C08A60'];const maxCount=sorted[0][1].count;
   document.getElementById('peak-hours').innerHTML=sorted.map(([h,d],i)=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;${i<sorted.length-1?'border-bottom:1px solid var(--surface-2)':''}"><div style="font-size:20px;width:28px;text-align:center;">${medals[i]}</div><div style="flex:1;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="font-size:13px;font-weight:700;color:var(--ink);">${h}:00 – ${parseInt(h)+1}:00 น.</div><div style="font-size:12px;font-weight:700;color:${colors[i]}">${d.count} รายการ</div></div><div style="height:5px;background:var(--surface-2);border-radius:99px;overflow:hidden;"><div style="height:5px;width:${(d.count/maxCount*100)}%;background:${colors[i]};border-radius:99px;"></div></div><div style="font-size:11px;color:var(--ink-muted);margin-top:2px;">รายรับ ฿${d.revenue.toLocaleString()}</div></div></div>`).join('');
 }
+
+
+
+   async function loadMultiMonthArchives(){
+  var now = new Date();
+  var promises = [];
+  for(var i = 2; i <= 5; i++){
+    var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    var key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    var sheetName = archiveSheetsByKey[key];
+    if(sheetName){
+      promises.push(
+        fetch(GAS_URL + '?action=getDashboardDataFromSheet&sheetName=' + encodeURIComponent(sheetName), {cache:'no-cache'})
+          .then(function(r){ return r.json(); })
+          .then(function(result){
+            var rows = (result && result.records) || [];
+            return rows.map(function(r){
+              return {
+                date: new Date(r.timestamp || r.date),
+                staffName: r.staffName || '-',
+                service: r.service || '-',
+                price: Number(r.price) || 0,
+                payment: r.payment || 'Cash',
+                phone: r.phone || '-'
+              };
+            }).filter(function(r){ return !isNaN(r.date) && r.price > 0; });
+          })
+          .catch(function(){ return []; })
+      );
+    }
+  }
+  var results = await Promise.all(promises);
+  results.forEach(function(recs){
+    _prevMonthRecords = _prevMonthRecords.concat(recs);
+  });
+  _prevMonthLoaded = true;
+}
+
+   
 
 function renderGoalBanner(netRevenue){
   const target=parseInt(localStorage.getItem('nk_monthly_target')||'0');
@@ -3316,6 +3433,7 @@ window.cfgLoad = function() {
   initShopHours();
   loadPromos();
 };
+
  
 
    
