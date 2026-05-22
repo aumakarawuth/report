@@ -1187,6 +1187,131 @@ body{
 }
 .dark-toggle:active { background: rgba(255,255,255,0.22); }
 
+
+
+   /* ── Heatmap ─────────────────────────────────────────────── */
+.heatmap-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.heatmap-table{border-collapse:collapse;min-width:540px;width:100%;}
+.heatmap-table th{font-size:10px;font-weight:700;color:var(--ink-muted);text-align:center;padding:3px 2px;text-transform:uppercase;letter-spacing:0.3px;}
+.heatmap-table td{padding:2px;}
+.heatmap-cell{height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;cursor:default;transition:transform 0.1s;}
+.heatmap-cell:hover{transform:scale(1.15);z-index:1;position:relative;}
+.hm-row-lbl{font-size:11px;font-weight:700;color:var(--ink-muted);padding:2px 8px 2px 0;white-space:nowrap;text-align:right;width:32px;}
+ 
+/* ── Retention ring ─────────────────────────────────────── */
+.retention-ring-wrap{position:relative;width:120px;height:120px;flex-shrink:0;}
+.retention-ring-wrap svg{transform:rotate(-90deg);}
+.retention-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.retention-pct{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--rose-deep);line-height:1;}
+.retention-lbl{font-size:10px;color:var(--ink-muted);margin-top:2px;}
+ 
+/* ── Staff comparison bar ───────────────────────────────── */
+.cmp-month-lbl{font-size:11px;font-weight:700;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+.cmp-staff-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.cmp-staff-name{font-size:12px;font-weight:700;color:var(--ink-soft);width:60px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cmp-bar-bg{flex:1;height:16px;background:var(--surface-2);border-radius:99px;overflow:hidden;}
+.cmp-bar-fill{height:16px;border-radius:99px;display:flex;align-items:center;padding-left:6px;transition:width 0.5s ease;}
+.cmp-bar-val{font-size:10px;font-weight:700;color:#fff;white-space:nowrap;}
+ 
+/* ── Service analytics ──────────────────────────────────── */
+.svc-rank-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--surface-2);}
+.svc-rank-row:last-child{border-bottom:none;}
+.svc-rank-num{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;width:22px;text-align:center;flex-shrink:0;color:var(--border);}
+.svc-rank-1{color:var(--gold)!important;}
+.svc-rank-2{color:#A0A0B0!important;}
+.svc-rank-3{color:#C08A60!important;}
+.svc-rank-info{flex:1;}
+.svc-rank-name{font-size:14px;font-weight:700;color:var(--ink);}
+.svc-rank-meta{font-size:11px;color:var(--ink-muted);margin-top:2px;}
+.svc-rank-bar-bg{height:5px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin-top:5px;}
+.svc-rank-bar-fill{height:5px;border-radius:99px;}
+.svc-rank-right{text-align:right;flex-shrink:0;}
+.svc-rank-rev{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--ink);}
+.svc-rank-share{font-size:11px;color:var(--ink-muted);}
+ 
+/* ── Member stats ───────────────────────────────────────── */
+.churn-card{background:var(--coral-pale);border:1.5px solid rgba(153,60,29,0.2);border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.churn-days{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--coral);min-width:38px;text-align:center;}
+.churn-info{flex:1;}
+.churn-name{font-size:14px;font-weight:700;color:var(--ink);}
+.churn-meta{font-size:11px;color:var(--ink-muted);margin-top:2px;}
+.churn-bal{text-align:right;font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--ink);}
+ 
+/* ── Member export ──────────────────────────────────────── */
+.mem-export-btn{width:100%;padding:14px;border-radius:12px;border:1.5px solid rgba(45,203,142,0.3);background:rgba(45,203,142,0.08);color:var(--teal);font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;transition:all 0.15s;touch-action:manipulation;}
+.mem-export-btn:active{transform:scale(0.98);}
+ 
+/* ── Promo card ─────────────────────────────────────────── */
+.promo-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
+.promo-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.promo-title{font-size:15px;font-weight:700;color:var(--ink);}
+.promo-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;}
+.promo-badge-on{background:rgba(45,203,142,0.15);color:var(--teal);}
+.promo-badge-off{background:rgba(136,136,136,0.12);color:var(--ink-muted);}
+.promo-desc{font-size:12px;color:var(--ink-muted);margin-bottom:6px;}
+.promo-discount{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--rose-deep);}
+.promo-actions{display:flex;gap:6px;margin-top:10px;}
+.promo-action-btn{flex:1;padding:8px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;color:var(--ink-muted);cursor:pointer;transition:all 0.15s;touch-action:manipulation;}
+.promo-action-btn:active{background:var(--rose-pale);border-color:var(--rose);color:var(--rose-deep);}
+.promo-action-del{color:var(--rose-deep);border-color:rgba(212,83,126,0.25);background:var(--rose-pale);}
+ 
+/* ── Add promo form ─────────────────────────────────────── */
+.promo-form{background:var(--card);border:2px dashed var(--border);border-radius:14px;padding:16px;margin-bottom:14px;}
+.promo-form-title{font-size:13px;font-weight:700;color:var(--ink-muted);margin-bottom:10px;}
+.promo-form input,.promo-form select{width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);font-family:'Sarabun',sans-serif;font-size:14px;color:var(--ink);margin-bottom:8px;outline:none;-webkit-appearance:none;}
+.promo-form input:focus,.promo-form select:focus{border-color:var(--rose);background:var(--card);}
+.promo-save-btn{width:100%;padding:13px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--rose),var(--rose-deep));color:#fff;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation;}
+ 
+/* ── Shop hours ─────────────────────────────────────────── */
+.hours-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:14px;}
+.hour-day{aspect-ratio:1;border-radius:9px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s;color:var(--ink-muted);background:var(--card);touch-action:manipulation;user-select:none;}
+.hour-day.closed{background:var(--rose-pale);border-color:var(--rose-b);color:var(--rose-deep);}
+.hour-day:active{transform:scale(0.92);}
+ 
+/* ── Tabs for analytics ─────────────────────────────────── */
+.ana-tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;}
+.ana-tab{padding:9px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;color:var(--ink-muted);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.18s;touch-action:manipulation;}
+.ana-tab.active{background:linear-gradient(135deg,var(--purple),#7B52AF);color:#fff;border-color:transparent;}
+ 
+/* ── Dark mode overrides for extensions ─────────────────── */
+[data-theme="dark"] .promo-card,
+[data-theme="dark"] .promo-form {
+  background: #1F2937;
+  border-color: rgba(244,114,160,0.18);
+}
+[data-theme="dark"] .churn-card {
+  background: rgba(153,60,29,0.12);
+  border-color: rgba(153,60,29,0.25);
+}
+[data-theme="dark"] .promo-form input,
+[data-theme="dark"] .promo-form select {
+  background: #374151;
+  border-color: rgba(255,255,255,0.12);
+  color: #F9FAFB;
+}
+[data-theme="dark"] .hour-day {
+  background: #1F2937;
+  border-color: rgba(244,114,160,0.18);
+  color: #9CA3AF;
+}
+[data-theme="dark"] .hour-day.closed {
+  background: #2D1620;
+  border-color: rgba(244,114,160,0.35);
+  color: #F472A0;
+}
+[data-theme="dark"] .ana-tab {
+  background: #1F2937;
+  border-color: rgba(244,114,160,0.2);
+  color: #9CA3AF;
+}
+[data-theme="dark"] .heatmap-cell { opacity: 0.9; }
+[data-theme="dark"] .svc-rank-row { border-color: rgba(255,255,255,0.07); }
+[data-theme="dark"] .mem-export-btn {
+  background: rgba(52,211,153,0.08);
+  border-color: rgba(52,211,153,0.2);
+}
+   
+
    
 /* snapshot view */
 #snapshot-view{display:none;}
@@ -1612,6 +1737,265 @@ body{
     <button class="cfg-save-bar-btn cfg-btn-save" onclick="cfgSave()" style="flex:1;padding:14px;border-radius:12px;border:none;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--rose),var(--rose-deep));color:#fff;box-shadow:0 4px 14px rgba(212,83,126,0.35);">💾 บันทึกการตั้งค่า</button>
   </div>
 </div>
+
+
+
+
+   <!-- ══ PAGE: ANALYTICS ══ -->
+<div class="page" id="page-analytics">
+  <div class="page-hd">
+    <div class="page-hd-title">Analytics <span>เชิงลึก</span></div>
+    <div class="page-hd-sub" id="ana-sub">วิเคราะห์รายได้ พนักงาน และพฤติกรรมลูกค้า</div>
+  </div>
+ 
+  <div class="month-pill">
+    <button class="month-pill-nav" id="ana-month-prev">‹</button>
+    <div class="month-pill-center">
+      <div class="month-pill-lbl" id="ana-month-lbl"></div>
+      <div class="month-pill-sub" id="ana-month-sub"></div>
+    </div>
+    <button class="month-pill-nav" id="ana-month-next">›</button>
+  </div>
+ 
+  <div class="ana-tabs">
+    <button class="ana-tab active" data-ana="heatmap">🌡️ Heatmap</button>
+    <button class="ana-tab" data-ana="services">💅 บริการ</button>
+    <button class="ana-tab" data-ana="staff-cmp">👥 พนักงาน</button>
+    <button class="ana-tab" data-ana="retention">💳 Retention</button>
+  </div>
+ 
+  <!-- Heatmap tab -->
+  <div id="ana-heatmap">
+    <div class="chart-card">
+      <div class="chart-card-hd">
+        <div>
+          <div class="chart-ttl">🌡️ Traffic Heatmap รายวัน × ชั่วโมง</div>
+          <div class="chart-sub">สีเข้ม = ลูกค้าเยอะ · วัน × ช่วงเวลา</div>
+        </div>
+      </div>
+      <div class="heatmap-wrap" id="heatmap-container">
+        <div class="empty"><div class="empty-ico">⏳</div>กำลังโหลด...</div>
+      </div>
+    </div>
+    <div class="kpi-grid" id="ana-heatmap-kpi"></div>
+  </div>
+ 
+  <!-- Services tab -->
+  <div id="ana-services" style="display:none;">
+    <div class="chart-card">
+      <div class="chart-card-hd">
+        <div><div class="chart-ttl">💅 Top Services วิเคราะห์ลึก</div><div class="chart-sub">รายรับ · จำนวน · เฉลี่ย/ครั้ง</div></div>
+      </div>
+      <div id="svc-analytics-list"><div class="empty"><div class="empty-ico">⏳</div>กำลังโหลด...</div></div>
+    </div>
+  </div>
+ 
+  <!-- Staff comparison tab -->
+  <div id="ana-staff-cmp" style="display:none;">
+    <div class="chart-card" id="staff-cmp-card">
+      <div class="chart-card-hd">
+        <div><div class="chart-ttl">👥 เปรียบเทียบพนักงาน 3 เดือน</div><div class="chart-sub">ค่าคอมรวมรายเดือน</div></div>
+      </div>
+      <div id="staff-cmp-content"><div class="empty"><div class="empty-ico">⏳</div>กำลังโหลด...</div></div>
+    </div>
+  </div>
+ 
+  <!-- Retention tab -->
+  <div id="ana-retention" style="display:none;">
+    <div class="kpi-grid" id="retention-kpi" style="margin-bottom:14px;"></div>
+    <div class="chart-card">
+      <div class="chart-card-hd">
+        <div><div class="chart-ttl">⚠️ สมาชิกเสี่ยง Churn</div><div class="chart-sub">ไม่มาใช้บริการ ≥ 60 วัน</div></div>
+      </div>
+      <div id="churn-list"><div class="empty"><div class="empty-ico">⏳</div>กำลังโหลด...</div></div>
+    </div>
+  </div>
+</div>
+ 
+<!-- ══ PAGE: MEMBER EXTENDED ══
+     หมายเหตุ: เพิ่มส่วนนี้ไว้ใน page-mem ที่มีอยู่แล้ว
+     โดยเพิ่ม div#mem-extended หลัง div#mem-list
+ 
+     ตัวอย่าง: หา <div id="mem-list"></div> แล้วเพิ่มต่อท้าย:
+-->
+<!-- เพิ่มต่อหลัง <div id="mem-list"></div> -->
+<div id="mem-extended" style="display:none;">
+  <!-- Member Stats section -->
+  <div class="chart-card" style="margin-top:14px;">
+    <div class="chart-card-hd">
+      <div><div class="chart-ttl">📊 สถิติสมาชิก</div></div>
+    </div>
+    <div class="kpi-grid" id="mem-stats-kpi"></div>
+  </div>
+ 
+  <!-- High balance members -->
+  <div class="g-card" style="margin-bottom:12px;">
+    <div class="g-card-hd">
+      <div class="g-card-ttl">💰 สมาชิกยอดสูงสุด</div>
+      <div class="g-card-cnt" id="high-bal-cnt"></div>
+    </div>
+    <div id="high-bal-list"></div>
+  </div>
+ 
+  <!-- Recent topups -->
+  <div class="g-card" style="margin-bottom:12px;">
+    <div class="g-card-hd">
+      <div class="g-card-ttl">📥 เติมเงินล่าสุด</div>
+    </div>
+    <div id="recent-topup-list"></div>
+  </div>
+ 
+  <!-- Export -->
+  <button class="mem-export-btn" onclick="exportMembersExcel()">
+    📊 Export สมาชิกทั้งหมด → Excel
+  </button>
+  <button class="mem-export-btn" style="border-color:rgba(212,83,126,0.3);background:rgba(212,83,126,0.08);color:var(--rose-deep);" onclick="exportMembersPDF()">
+    📄 Export สมาชิก → PDF
+  </button>
+</div>
+ 
+<!-- ══ SETTINGS EXTENSION — เพิ่มใน page-settings ก่อน div.export-btn-row ══ -->
+<!-- ค้นหาบรรทัด:
+     <div style="display:flex;gap:8px;padding-bottom:18px;">
+     แล้วเพิ่ม section เหล่านี้ก่อนบรรทัดนั้น
+-->
+<div id="settings-extension" style="display:none;">
+ 
+  <!-- Shop Hours -->
+  <div class="cfg-section" id="cfg-shop-hours">
+    <div class="cfg-section-hd">
+      <div class="cfg-section-icon" style="background:rgba(240,184,74,0.12);">🕙</div>
+      <div class="cfg-section-info">
+        <div class="cfg-section-title">เวลาเปิด-ปิดร้าน</div>
+        <div class="cfg-section-desc">กำหนดชั่วโมงทำการและวันหยุด</div>
+      </div>
+    </div>
+    <div class="cfg-row">
+      <div class="cfg-row-left"><div class="cfg-row-label">เปิดร้าน</div></div>
+      <div class="cfg-row-right">
+        <select class="cfg-input" id="cfg-open-hour" style="width:90px;text-align:left;">
+          <option value="9">09:00</option><option value="10" selected>10:00</option>
+          <option value="11">11:00</option><option value="12">12:00</option>
+        </select>
+      </div>
+    </div>
+    <div class="cfg-row">
+      <div class="cfg-row-left"><div class="cfg-row-label">ปิดร้าน</div></div>
+      <div class="cfg-row-right">
+        <select class="cfg-input" id="cfg-close-hour" style="width:90px;text-align:left;">
+          <option value="18">18:00</option><option value="19">19:00</option>
+          <option value="20" selected>20:00</option><option value="21">21:00</option>
+          <option value="22">22:00</option>
+        </select>
+      </div>
+    </div>
+    <div style="padding:10px 16px 14px;">
+      <div style="font-size:12px;font-weight:700;color:var(--ink-muted);margin-bottom:8px;">วันหยุดประจำสัปดาห์</div>
+      <div class="hours-grid" id="closed-days-grid">
+        <div class="hour-day" data-day="1">จ</div>
+        <div class="hour-day" data-day="2">อ</div>
+        <div class="hour-day" data-day="3">พ</div>
+        <div class="hour-day" data-day="4">พฤ</div>
+        <div class="hour-day" data-day="5">ศ</div>
+        <div class="hour-day closed" data-day="6">ส</div>
+        <div class="hour-day closed" data-day="0">อา</div>
+      </div>
+      <div style="font-size:11px;color:var(--ink-muted);">กดเพื่อเลือก/ยกเลิกวันหยุด · สีชมพู = หยุด</div>
+    </div>
+    <div style="padding:0 16px 14px;">
+      <button onclick="saveShopHoursConfig()" style="width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--rose),var(--rose-deep));color:#fff;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">💾 บันทึกเวลาร้าน</button>
+    </div>
+  </div>
+ 
+  <!-- Promo Manager -->
+  <div class="cfg-section">
+    <div class="cfg-section-hd">
+      <div class="cfg-section-icon" style="background:rgba(212,83,126,0.12);">🎁</div>
+      <div class="cfg-section-info">
+        <div class="cfg-section-title">จัดการโปรโมชั่น</div>
+        <div class="cfg-section-desc">สร้าง/แก้ไข/ลบ โปรโมชั่นพิเศษ</div>
+      </div>
+      <button onclick="togglePromoForm()" style="background:var(--rose-pale);border:1.5px solid var(--rose-b);border-radius:9px;padding:7px 12px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;color:var(--rose-deep);cursor:pointer;">+ เพิ่ม</button>
+    </div>
+ 
+    <!-- Add promo form (hidden by default) -->
+    <div class="promo-form" id="promo-form-area" style="display:none;margin:0 16px 12px;">
+      <div class="promo-form-title">➕ เพิ่มโปรโมชั่นใหม่</div>
+      <input type="hidden" id="promo-edit-id">
+      <input type="text" id="promo-title-input" placeholder="ชื่อโปรโมชั่น เช่น วันเกิดลดพิเศษ">
+      <input type="text" id="promo-desc-input" placeholder="รายละเอียด...">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <select id="promo-type-input">
+          <option value="fixed">ลดแบบคงที่ (฿)</option>
+          <option value="percent">ลดแบบ % (%)</option>
+        </select>
+        <input type="number" id="promo-discount-input" placeholder="จำนวน" min="0" step="0.01">
+      </div>
+      <input type="date" id="promo-expire-input" style="margin-bottom:8px;">
+      <button class="promo-save-btn" onclick="savePromoItem()">💾 บันทึกโปรโมชั่น</button>
+    </div>
+ 
+    <div id="promo-list-container" style="padding:4px 16px 10px;">
+      <div class="empty" style="padding:16px"><div class="empty-ico">🎁</div>ยังไม่มีโปรโมชั่น</div>
+    </div>
+  </div>
+ 
+  <!-- Notification Settings Extended -->
+  <div class="cfg-section">
+    <div class="cfg-section-hd">
+      <div class="cfg-section-icon" style="background:rgba(45,203,142,0.12);">🔔</div>
+      <div class="cfg-section-info">
+        <div class="cfg-section-title">แจ้งเตือนขั้นสูง</div>
+        <div class="cfg-section-desc">ตั้งค่าการแจ้งเตือนอัตโนมัติ</div>
+      </div>
+    </div>
+    <div class="cfg-row">
+      <div class="cfg-row-left">
+        <div class="cfg-row-label">แจ้งเตือนยอดต่ำ</div>
+        <div class="cfg-row-sub">แจ้งสมาชิกเมื่อยอดต่ำกว่า threshold</div>
+      </div>
+      <div class="cfg-row-right">
+        <label class="cfg-toggle">
+          <input type="checkbox" id="cfg-notify-low-bal" checked onchange="cfgUpdateBadge(this,'cfg-badge-low-bal')">
+          <div class="cfg-toggle-track"></div><div class="cfg-toggle-thumb"></div>
+        </label>
+        <span class="cfg-badge cfg-badge-on" id="cfg-badge-low-bal">เปิด</span>
+      </div>
+    </div>
+    <div class="cfg-row">
+      <div class="cfg-row-left"><div class="cfg-row-label">ยอดขั้นต่ำที่แจ้งเตือน</div></div>
+      <div class="cfg-row-right">
+        <span class="cfg-prefix">฿</span>
+        <input type="number" class="cfg-input" id="cfg-low-bal-threshold" value="500" min="0" step="100" style="width:90px;">
+      </div>
+    </div>
+    <div class="cfg-row">
+      <div class="cfg-row-left">
+        <div class="cfg-row-label">ระยะเวลา Churn Risk</div>
+        <div class="cfg-row-sub">สมาชิกที่ไม่มาใน X วัน = เสี่ยง</div>
+      </div>
+      <div class="cfg-row-right">
+        <input type="number" class="cfg-input" id="cfg-churn-days" value="60" min="30" max="180" step="10" style="width:70px;">
+        <span class="cfg-unit">วัน</span>
+      </div>
+    </div>
+    <div class="cfg-row">
+      <div class="cfg-row-left">
+        <div class="cfg-row-label">แจ้งล่วงหน้าก่อนหมดอายุ</div>
+        <div class="cfg-row-sub">ส่ง LINE แจ้งล่วงหน้า X วัน</div>
+      </div>
+      <div class="cfg-row-right">
+        <input type="number" class="cfg-input" id="cfg-auto-remind-days" value="7" min="1" max="30" step="1" style="width:70px;">
+        <span class="cfg-unit">วัน</span>
+      </div>
+    </div>
+    <div style="padding:0 16px 12px;">
+      <button onclick="saveExtendedSettings()" style="width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--rose),var(--rose-deep));color:#fff;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">💾 บันทึกการตั้งค่า</button>
+    </div>
+  </div>
+</div>
+
+   
 
 <!-- PIN Modal -->
 <div class="pin-modal-bg" id="pin-modal-bg">
@@ -2387,6 +2771,552 @@ function hideTip(){document.getElementById('tip').style.opacity='0';}
     if (!localStorage.getItem('nk_theme')) applyTheme(e.matches);
   });
 })();
+
+
+
+   // ─────────────────────────────────────────────────────────────
+// Analytics Page
+// ─────────────────────────────────────────────────────────────
+var anaMonthY = new Date().getFullYear(), anaMonthM = new Date().getMonth();
+var anaTab = 'heatmap', anaDataCache = {};
+ 
+function updateAnaMonthPill() {
+  var TH_MO = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  document.getElementById('ana-month-lbl').textContent = TH_MO[anaMonthM] + ' ' + (anaMonthY + 543);
+  var now = new Date();
+  var isCurrent = anaMonthY === now.getFullYear() && anaMonthM === now.getMonth();
+  document.getElementById('ana-month-sub').textContent = isCurrent ? 'เดือนปัจจุบัน' : 'เลือกดูย้อนหลัง';
+  var nextBtn = document.getElementById('ana-month-next');
+  if (nextBtn) { nextBtn.disabled = isCurrent; nextBtn.style.opacity = isCurrent ? '0.3' : '1'; }
+}
+ 
+function changeAnaMonth(dir) {
+  anaMonthM += dir;
+  if (anaMonthM < 0) { anaMonthM = 11; anaMonthY--; }
+  if (anaMonthM > 11) { anaMonthM = 0; anaMonthY++; }
+  updateAnaMonthPill();
+  anaDataCache = {};
+  renderAnaTab(anaTab);
+}
+ 
+function switchAnaTab(tab) {
+  anaTab = tab;
+  document.querySelectorAll('.ana-tab').forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-ana') === tab); });
+  ['heatmap','services','staff-cmp','retention'].forEach(function(t) {
+    var el = document.getElementById('ana-' + t);
+    if (el) el.style.display = (t === tab) ? '' : 'none';
+  });
+  renderAnaTab(tab);
+}
+ 
+function renderAnaTab(tab) {
+  var periodKey = anaMonthY + '-' + String(anaMonthM + 1).padStart(2, '0');
+  if (tab === 'heatmap')   renderHeatmap(periodKey);
+  if (tab === 'services')  renderServiceAnalytics(periodKey);
+  if (tab === 'staff-cmp') renderStaffComparison();
+  if (tab === 'retention') renderRetention(periodKey);
+}
+ 
+// ── Heatmap ──────────────────────────────────────────────────
+function renderHeatmap(periodKey) {
+  var el = document.getElementById('heatmap-container');
+  el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div>กำลังโหลด...</div>';
+  fetch(GAS_URL + '?action=getHeatmapData&periodKey=' + periodKey, { cache: 'no-cache' })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (!res || !res.ok) { el.innerHTML = '<div class="empty"><div class="empty-ico">⚠️</div>' + (res.error || 'โหลดไม่ได้') + '</div>'; return; }
+      el.innerHTML = _buildHeatmapHTML(res.matrix, res.max);
+      // KPI
+      var totalCount = 0, totalRev = 0, peakDay = -1, peakHour = -1, peakVal = 0;
+      [0,1,2,3,4,5,6].forEach(function(d) {
+        for (var h = 9; h <= 20; h++) {
+          var cell = res.matrix[d][h];
+          totalCount += cell.count; totalRev += cell.revenue;
+          if (cell.count > peakVal) { peakVal = cell.count; peakDay = d; peakHour = h; }
+        }
+      });
+      var days = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+      document.getElementById('ana-heatmap-kpi').innerHTML =
+        '<div class="kpi-card"><span class="kpi-icon">📋</span><div class="kpi-lbl">รายการรวม</div><div class="kpi-val" style="color:var(--rose-deep)">' + totalCount + '</div><div class="kpi-sub">รายการในเดือนนี้</div></div>' +
+        '<div class="kpi-card"><span class="kpi-icon">⏰</span><div class="kpi-lbl">Peak Time</div><div class="kpi-val" style="color:var(--purple)">' + (peakDay >= 0 ? days[peakDay] + ' ' + peakHour + ':00' : '-') + '</div><div class="kpi-sub">' + peakVal + ' รายการ</div></div>';
+    }).catch(function() { el.innerHTML = '<div class="empty"><div class="empty-ico">⚠️</div>เชื่อมต่อไม่ได้</div>'; });
+}
+ 
+function _buildHeatmapHTML(matrix, max) {
+  var days  = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+  var hours = [9,10,11,12,13,14,15,16,17,18,19,20];
+  var html  = '<table class="heatmap-table"><thead><tr><th></th>';
+  hours.forEach(function(h) { html += '<th>' + h + '</th>'; });
+  html += '</tr></thead><tbody>';
+  [0,1,2,3,4,5,6].forEach(function(d) {
+    html += '<tr><td class="hm-row-lbl">' + days[d] + '</td>';
+    hours.forEach(function(h) {
+      var cell = matrix[d] && matrix[d][h] ? matrix[d][h] : { count: 0, revenue: 0 };
+      var intensity = max > 0 ? cell.count / max : 0;
+      var bg = _heatColor(intensity);
+      var textColor = intensity > 0.5 ? '#fff' : 'var(--ink-muted)';
+      var label = cell.count > 0 ? cell.count : '';
+      html += '<td><div class="heatmap-cell" style="background:' + bg + ';color:' + textColor + '" title="' + days[d] + ' ' + h + ':00 · ' + cell.count + ' รายการ · ฿' + (cell.revenue || 0).toLocaleString() + '">' + label + '</div></td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
+}
+ 
+function _heatColor(intensity) {
+  if (intensity === 0) return 'var(--surface-2)';
+  if (intensity < 0.25) return 'rgba(212,83,126,0.15)';
+  if (intensity < 0.50) return 'rgba(212,83,126,0.40)';
+  if (intensity < 0.75) return 'rgba(212,83,126,0.70)';
+  return '#D4537E';
+}
+ 
+// ── Service Analytics ─────────────────────────────────────────
+function renderServiceAnalytics(periodKey) {
+  var el = document.getElementById('svc-analytics-list');
+  el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div>กำลังโหลด...</div>';
+  fetch(GAS_URL + '?action=getServiceAnalytics&periodKey=' + periodKey, { cache: 'no-cache' })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (!res || !res.ok || !res.services.length) { el.innerHTML = '<div class="empty"><div class="empty-ico">📭</div>ไม่มีข้อมูล</div>'; return; }
+      var maxRev = res.services[0].revenue || 1;
+      var colors = ['#D4537E','#534AB7','#0F6E56','#BA7517','#2DCB8E'];
+      el.innerHTML = res.services.slice(0, 8).map(function(s, i) {
+        var col = colors[i % colors.length];
+        return '<div class="svc-rank-row">' +
+          '<div class="svc-rank-num ' + (i < 3 ? 'svc-rank-' + (i+1) : '') + '">' + (i+1) + '</div>' +
+          '<div class="svc-rank-info">' +
+            '<div class="svc-rank-name">' + s.service + '</div>' +
+            '<div class="svc-rank-meta">' + s.count + ' ครั้ง · เฉลี่ย ฿' + s.avg.toLocaleString() + '/ครั้ง · ' + s.share + '% ของรายรับ</div>' +
+            '<div class="svc-rank-bar-bg"><div class="svc-rank-bar-fill" style="width:' + Math.round((s.revenue/maxRev)*100) + '%;background:' + col + '"></div></div>' +
+          '</div>' +
+          '<div class="svc-rank-right"><div class="svc-rank-rev">฿' + s.revenue.toLocaleString() + '</div><div class="svc-rank-share">' + s.share + '%</div></div>' +
+        '</div>';
+      }).join('');
+    }).catch(function() { el.innerHTML = '<div class="empty"><div class="empty-ico">⚠️</div>เชื่อมต่อไม่ได้</div>'; });
+}
+ 
+// ── Staff Comparison ──────────────────────────────────────────
+function renderStaffComparison() {
+  var el = document.getElementById('staff-cmp-content');
+  el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div>กำลังโหลด...</div>';
+  fetch(GAS_URL + '?action=getStaffComparison&months=3', { cache: 'no-cache' })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (!res || !res.ok || !res.months.length) { el.innerHTML = '<div class="empty"><div class="empty-ico">📭</div>ไม่มีข้อมูล</div>'; return; }
+      var colors = ['#D4537E','#534AB7','#0F6E56','#BA7517','#2DCB8E'];
+      var html = '';
+      res.months.forEach(function(m) {
+        var staffEntries = Object.entries(m.staffMap).sort(function(a, b) { return b[1].commission - a[1].commission; });
+        if (!staffEntries.length) return;
+        var maxComm = staffEntries[0][1].commission || 1;
+        html += '<div class="cmp-month-lbl">' + m.label + '</div>';
+        staffEntries.slice(0, 6).forEach(function(entry, i) {
+          var name = entry[0], d = entry[1];
+          var pct = Math.round((d.commission / maxComm) * 100);
+          var col = colors[i % colors.length];
+          html += '<div class="cmp-staff-row">' +
+            '<div class="cmp-staff-name">' + name + '</div>' +
+            '<div class="cmp-bar-bg"><div class="cmp-bar-fill" style="width:' + pct + '%;background:' + col + '">' +
+              '<span class="cmp-bar-val">฿' + Math.round(d.commission).toLocaleString() + '</span>' +
+            '</div></div>' +
+          '</div>';
+        });
+        html += '<div style="height:1px;background:var(--surface-2);margin:12px 0;"></div>';
+      });
+      el.innerHTML = html || '<div class="empty"><div class="empty-ico">📭</div>ไม่มีข้อมูล</div>';
+    }).catch(function() { el.innerHTML = '<div class="empty"><div class="empty-ico">⚠️</div>เชื่อมต่อไม่ได้</div>'; });
+}
+ 
+// ── Retention ─────────────────────────────────────────────────
+function renderRetention(periodKey) {
+  var kpiEl  = document.getElementById('retention-kpi');
+  var listEl = document.getElementById('churn-list');
+  kpiEl.innerHTML  = '<div class="empty"><div class="empty-ico">⏳</div>กำลังโหลด...</div>';
+  listEl.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div>กำลังโหลด...</div>';
+  fetch(GAS_URL + '?action=getRetentionData&periodKey=' + periodKey, { cache: 'no-cache' })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (!res || !res.ok) { kpiEl.innerHTML = '<div class="empty"><div class="empty-ico">⚠️</div>เชื่อมต่อไม่ได้</div>'; return; }
+      var rate = res.retentionRate || 0;
+      var circ = 2 * Math.PI * 44;
+      var dash = (rate / 100) * circ;
+      kpiEl.innerHTML =
+        '<div class="kpi-card" style="grid-column:1/-1;display:flex;align-items:center;gap:16px;padding:16px;">' +
+          '<div class="retention-ring-wrap">' +
+            '<svg viewBox="0 0 120 120" width="120" height="120">' +
+              '<circle cx="60" cy="60" r="44" fill="none" stroke="var(--surface-2)" stroke-width="12"/>' +
+              '<circle cx="60" cy="60" r="44" fill="none" stroke="var(--rose)" stroke-width="12" stroke-linecap="round" stroke-dasharray="' + dash + ' ' + (circ - dash) + '" stroke-dashoffset="0"/>' +
+            '</svg>' +
+            '<div class="retention-center"><div class="retention-pct">' + rate + '%</div><div class="retention-lbl">Retention</div></div>' +
+          '</div>' +
+          '<div style="flex:1;">' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+              '<div class="hero-stat"><div class="hs-lbl">สมาชิกทั้งหมด</div><div class="hs-val hs-rose">' + res.totalMembers + '</div></div>' +
+              '<div class="hero-stat"><div class="hs-lbl">Active เดือนนี้</div><div class="hs-val hs-teal">' + res.activeCount + '</div></div>' +
+              '<div class="hero-stat"><div class="hs-lbl">ไม่ Active</div><div class="hs-val hs-amber">' + res.inactiveCount + '</div></div>' +
+              '<div class="hero-stat"><div class="hs-lbl">เสี่ยง Churn</div><div class="hs-val" style="color:var(--coral)">' + res.churnRisk.length + '</div></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      if (!res.churnRisk.length) {
+        listEl.innerHTML = '<div class="empty" style="padding:16px"><div class="empty-ico">✅</div>ไม่มีสมาชิกเสี่ยง Churn ในขณะนี้</div>';
+        return;
+      }
+      listEl.innerHTML = res.churnRisk.slice(0, 15).map(function(m) {
+        var urgency = m.daysSince >= 120 ? 'var(--rose-deep)' : m.daysSince >= 90 ? 'var(--coral)' : 'var(--amber)';
+        return '<div class="churn-card">' +
+          '<div class="churn-days" style="color:' + urgency + '">' + m.daysSince + '<div style="font-size:9px;font-weight:600;">วัน</div></div>' +
+          '<div class="churn-info">' +
+            '<div class="churn-name">' + m.name + '</div>' +
+            '<div class="churn-meta">📞 ' + m.phone + ' · ล่าสุด ' + m.lastVisit + '</div>' +
+          '</div>' +
+          '<div class="churn-bal">฿' + (m.balance || 0).toLocaleString() + '</div>' +
+        '</div>';
+      }).join('');
+    }).catch(function() {
+      kpiEl.innerHTML = '<div class="empty"><div class="empty-ico">⚠️</div>เชื่อมต่อไม่ได้</div>';
+    });
+}
+ 
+// ─────────────────────────────────────────────────────────────
+// Member Stats Extended
+// ─────────────────────────────────────────────────────────────
+var _memStatsLoaded = false;
+ 
+function toggleMemberExtended() {
+  var el = document.getElementById('mem-extended');
+  if (!el) return;
+  var isShown = el.style.display !== 'none';
+  el.style.display = isShown ? 'none' : '';
+  if (!isShown && !_memStatsLoaded) loadMemberStats();
+}
+ 
+function loadMemberStats() {
+  fetch(GAS_URL + '?action=getMemberStats', { cache: 'no-cache' })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (!res || !res.ok) return;
+      _memStatsLoaded = true;
+ 
+      // KPI
+      document.getElementById('mem-stats-kpi').innerHTML =
+        '<div class="kpi-card"><span class="kpi-icon">💰</span><div class="kpi-lbl">เครดิตรวมในระบบ</div><div class="kpi-val" style="color:var(--teal)">฿' + (res.totalBalance || 0).toLocaleString() + '</div></div>' +
+        '<div class="kpi-card"><span class="kpi-icon">⏰</span><div class="kpi-lbl">หมดอายุใน 30 วัน</div><div class="kpi-val" style="color:var(--rose-deep)">' + (res.expiresIn30 || 0) + ' คน</div></div>' +
+        '<div class="kpi-card"><span class="kpi-icon">❌</span><div class="kpi-lbl">หมดอายุแล้ว</div><div class="kpi-val" style="color:var(--amber)">' + (res.expiredCount || 0) + ' คน</div></div>' +
+        '<div class="kpi-card"><span class="kpi-icon">🔔</span><div class="kpi-lbl">เตือนใน 90 วัน</div><div class="kpi-val" style="color:var(--purple)">' + (res.expiresIn90 || 0) + ' คน</div></div>';
+ 
+      // High balance
+      var hbEl = document.getElementById('high-bal-list');
+      document.getElementById('high-bal-cnt').textContent = (res.highBalanceMembers || []).length + ' คน';
+      if (!(res.highBalanceMembers || []).length) {
+        hbEl.innerHTML = '<div class="empty" style="padding:14px"><div class="empty-ico">💰</div>ไม่มีสมาชิกยอดสูง</div>';
+      } else {
+        hbEl.innerHTML = res.highBalanceMembers.map(function(m, i) {
+          return '<div class="tx-item">' +
+            '<div class="tx-dot" style="background:var(--gold)"></div>' +
+            '<div class="tx-info"><div class="tx-svc">' + m.name + '</div><div class="tx-meta">รหัส ' + m.code + ' · ' + m.phone + '</div></div>' +
+            '<div class="tx-right"><div class="tx-price" style="color:var(--green)">฿' + m.balance.toLocaleString() + '</div><div class="tx-time">#' + (i+1) + '</div></div>' +
+          '</div>';
+        }).join('');
+      }
+ 
+      // Recent topups
+      var rtEl = document.getElementById('recent-topup-list');
+      if (!(res.recentTopups || []).length) {
+        rtEl.innerHTML = '<div class="empty" style="padding:14px"><div class="empty-ico">📭</div>ไม่มีประวัติเติมเงิน</div>';
+      } else {
+        rtEl.innerHTML = res.recentTopups.map(function(t) {
+          return '<div class="tx-item">' +
+            '<div class="tx-dot" style="background:var(--teal)"></div>' +
+            '<div class="tx-info"><div class="tx-svc">' + t.action + '</div><div class="tx-meta">' + t.phone + ' · ' + t.staff + '</div></div>' +
+            '<div class="tx-right"><div class="pay-badge pay-topup">เติม</div><div class="tx-price">฿' + Math.abs(Number(t.amount) || 0).toLocaleString() + '</div><div class="tx-time">' + t.date + '</div></div>' +
+          '</div>';
+        }).join('');
+      }
+    }).catch(function() {});
+}
+ 
+function exportMembersExcel() {
+  fetch(GAS_URL + '?action=exportMembersCSV', { cache: 'no-cache' })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (!res || !res.ok || !res.members.length) { alert('ไม่มีข้อมูลสมาชิก'); return; }
+      var rows = [['เบอร์โทร','ชื่อ','ยอดเงิน (฿)','LINE ID','วันหมดอายุ','รหัสสมาชิก']];
+      res.members.forEach(function(m) { rows.push([m.phone, m.name, m.balance, m.lineId, m.expiry, m.memberCode]); });
+      var wb = XLSX.utils.book_new();
+      var ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = [{wch:14},{wch:16},{wch:12},{wch:26},{wch:14},{wch:12}];
+      XLSX.utils.book_append_sheet(wb, ws, 'สมาชิก');
+      XLSX.writeFile(wb, 'NailKloset_สมาชิก_' + new Date().toLocaleDateString('th-TH').replace(/\//g,'-') + '.xlsx');
+    }).catch(function() { alert('Export ไม่สำเร็จ'); });
+}
+ 
+function exportMembersPDF() {
+  fetch(GAS_URL + '?action=exportMembersCSV', { cache: 'no-cache' })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (!res || !res.ok || !res.members.length) { alert('ไม่มีข้อมูล'); return; }
+      var now = new Date();
+      var rows = res.members.map(function(m, i) {
+        return '<tr><td>' + (i+1) + '</td><td>' + m.name + '</td><td>' + m.phone + '</td><td>฿' + m.balance.toLocaleString() + '</td><td>' + m.memberCode + '</td><td>' + m.expiry + '</td></tr>';
+      }).join('');
+      var html = '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>รายชื่อสมาชิก</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:"Sarabun",sans-serif;padding:20px;}h2{margin-bottom:4px;}p{color:#8A7090;margin-bottom:16px;font-size:13px;}table{width:100%;border-collapse:collapse;font-size:13px;}th{background:#1A0A12;color:#fff;padding:8px 10px;text-align:left;}td{padding:6px 10px;border-bottom:1px solid #f0e8f5;}.print-btn{position:fixed;bottom:20px;right:20px;background:#D4537E;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-family:"Sarabun",sans-serif;font-size:15px;font-weight:700;cursor:pointer;}@media print{.print-btn{display:none;}}</style></head><body><button class="print-btn" onclick="window.print()">🖨 พิมพ์</button><h2>Nail Kloset — รายชื่อสมาชิกทั้งหมด</h2><p>ณ วันที่ ' + now.getDate() + '/' + (now.getMonth()+1) + '/' + (now.getFullYear()+543) + ' · ' + res.count + ' คน</p><table><thead><tr><th>#</th><th>ชื่อ</th><th>เบอร์โทร</th><th>ยอดเงิน</th><th>รหัสสมาชิก</th><th>หมดอายุ</th></tr></thead><tbody>' + rows + '</tbody></table></body></html>';
+      var w = window.open('', '_blank');
+      if (w) { w.document.write(html); w.document.close(); }
+    }).catch(function() { alert('Export ไม่สำเร็จ'); });
+}
+ 
+// ─────────────────────────────────────────────────────────────
+// Settings Extensions
+// ─────────────────────────────────────────────────────────────
+var _closedDays = new Set([0, 6]); // default อาทิตย์, เสาร์
+ 
+function initShopHours() {
+  fetch(GAS_URL + '?action=getShopHours', { cache: 'no-cache' })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (!res || !res.ok) return;
+      var openEl  = document.getElementById('cfg-open-hour');
+      var closeEl = document.getElementById('cfg-close-hour');
+      if (openEl)  openEl.value  = res.openHour  || 10;
+      if (closeEl) closeEl.value = res.closeHour || 20;
+      _closedDays = new Set(res.closedDays || [0, 6]);
+      _renderClosedDays();
+    }).catch(function() {});
+ 
+  // Attach day toggle
+  document.querySelectorAll('#closed-days-grid .hour-day').forEach(function(el) {
+    el.addEventListener('click', function() {
+      var day = parseInt(this.getAttribute('data-day'));
+      if (_closedDays.has(day)) _closedDays.delete(day);
+      else _closedDays.add(day);
+      _renderClosedDays();
+    });
+  });
+}
+ 
+function _renderClosedDays() {
+  document.querySelectorAll('#closed-days-grid .hour-day').forEach(function(el) {
+    var day = parseInt(el.getAttribute('data-day'));
+    el.classList.toggle('closed', _closedDays.has(day));
+  });
+}
+ 
+function saveShopHoursConfig() {
+  var params = new URLSearchParams({
+    action: 'saveShopHours',
+    openHour:    document.getElementById('cfg-open-hour').value,
+    closeHour:   document.getElementById('cfg-close-hour').value,
+    closedDays:  JSON.stringify(Array.from(_closedDays))
+  });
+  fetch(GAS_URL + '?' + params.toString())
+    .then(function(r) { return r.json(); })
+    .then(function(res) { cfgShowToast(res.ok ? '✅ บันทึกเวลาร้านแล้ว' : '❌ บันทึกไม่สำเร็จ', !res.ok); })
+    .catch(function() { cfgShowToast('❌ เชื่อมต่อไม่ได้', true); });
+}
+ 
+function saveExtendedSettings() {
+  var params = new URLSearchParams({
+    action: 'saveConfig',
+    NOTIFY_LOW_BAL:    document.getElementById('cfg-notify-low-bal').checked,
+    LOW_BAL_THRESHOLD: document.getElementById('cfg-low-bal-threshold').value,
+    CHURN_DAYS:        document.getElementById('cfg-churn-days').value,
+    AUTO_REMIND_DAYS:  document.getElementById('cfg-auto-remind-days').value
+  });
+  fetch(GAS_URL + '?' + params.toString())
+    .then(function(r) { return r.json(); })
+    .then(function() { cfgShowToast('✅ บันทึกการตั้งค่าแล้ว'); })
+    .catch(function() { cfgShowToast('❌ เชื่อมต่อไม่ได้', true); });
+}
+ 
+// ── Promo Manager ─────────────────────────────────────────────
+var _promoFormVisible = false;
+var _promoItems = [];
+ 
+function togglePromoForm() {
+  _promoFormVisible = !_promoFormVisible;
+  var el = document.getElementById('promo-form-area');
+  if (el) el.style.display = _promoFormVisible ? '' : 'none';
+  if (_promoFormVisible) {
+    document.getElementById('promo-edit-id').value = '';
+    document.getElementById('promo-title-input').value = '';
+    document.getElementById('promo-desc-input').value = '';
+    document.getElementById('promo-type-input').value = 'fixed';
+    document.getElementById('promo-discount-input').value = '';
+    document.getElementById('promo-expire-input').value = '';
+  }
+}
+ 
+function loadPromos() {
+  fetch(GAS_URL + '?action=getPromoList', { cache: 'no-cache' })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      _promoItems = (res && res.promos) || [];
+      renderPromoList();
+    }).catch(function() {});
+}
+ 
+function renderPromoList() {
+  var el = document.getElementById('promo-list-container');
+  if (!_promoItems.length) {
+    el.innerHTML = '<div class="empty" style="padding:16px"><div class="empty-ico">🎁</div>ยังไม่มีโปรโมชั่น</div>';
+    return;
+  }
+  el.innerHTML = _promoItems.map(function(p) {
+    var typeLabel = p.type === 'percent' ? p.discount + '%' : '฿' + Number(p.discount).toLocaleString();
+    var expLabel  = p.expire ? '· หมด ' + p.expire : '';
+    return '<div class="promo-card">' +
+      '<div class="promo-card-top">' +
+        '<div class="promo-title">' + p.title + '</div>' +
+        '<span class="promo-badge ' + (p.active ? 'promo-badge-on' : 'promo-badge-off') + '">' + (p.active ? 'เปิด' : 'ปิด') + '</span>' +
+      '</div>' +
+      '<div class="promo-desc">' + (p.desc || '-') + expLabel + '</div>' +
+      '<div class="promo-discount">ลด ' + typeLabel + '</div>' +
+      '<div class="promo-actions">' +
+        '<button class="promo-action-btn" onclick="editPromo(\'' + p.id + '\')">✏️ แก้ไข</button>' +
+        '<button class="promo-action-btn" onclick="togglePromoActive(\'' + p.id + '\')">' + (p.active ? '🔴 ปิด' : '🟢 เปิด') + '</button>' +
+        '<button class="promo-action-btn promo-action-del" onclick="deletePromoItem(\'' + p.id + '\')">🗑️ ลบ</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+ 
+function savePromoItem() {
+  var id = document.getElementById('promo-edit-id').value;
+  var params = new URLSearchParams({
+    action:   'savePromo',
+    id:       id || '',
+    title:    document.getElementById('promo-title-input').value,
+    desc:     document.getElementById('promo-desc-input').value,
+    type:     document.getElementById('promo-type-input').value,
+    discount: document.getElementById('promo-discount-input').value || '0',
+    expire:   document.getElementById('promo-expire-input').value,
+    active:   'true'
+  });
+  fetch(GAS_URL + '?' + params.toString())
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res && res.ok) { cfgShowToast('✅ บันทึกโปรโมชั่นแล้ว'); loadPromos(); togglePromoForm(); }
+      else cfgShowToast('❌ บันทึกไม่สำเร็จ', true);
+    }).catch(function() { cfgShowToast('❌ เชื่อมต่อไม่ได้', true); });
+}
+ 
+function editPromo(id) {
+  var promo = _promoItems.find(function(p) { return p.id === id; });
+  if (!promo) return;
+  document.getElementById('promo-edit-id').value      = promo.id;
+  document.getElementById('promo-title-input').value  = promo.title;
+  document.getElementById('promo-desc-input').value   = promo.desc || '';
+  document.getElementById('promo-type-input').value   = promo.type || 'fixed';
+  document.getElementById('promo-discount-input').value = promo.discount;
+  document.getElementById('promo-expire-input').value  = promo.expire || '';
+  _promoFormVisible = false;
+  togglePromoForm();
+}
+ 
+function togglePromoActive(id) {
+  var promo = _promoItems.find(function(p) { return p.id === id; });
+  if (!promo) return;
+  var params = new URLSearchParams({ action: 'savePromo', id: promo.id, title: promo.title, desc: promo.desc || '', type: promo.type || 'fixed', discount: promo.discount, expire: promo.expire || '', active: promo.active ? 'false' : 'true' });
+  fetch(GAS_URL + '?' + params.toString()).then(function(r) { return r.json(); }).then(function(res) { if (res && res.ok) loadPromos(); });
+}
+ 
+function deletePromoItem(id) {
+  if (!confirm('ลบโปรโมชั่นนี้?')) return;
+  fetch(GAS_URL + '?action=deletePromo&id=' + id)
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res && res.ok) { cfgShowToast('🗑️ ลบแล้ว'); loadPromos(); }
+      else cfgShowToast('❌ ลบไม่สำเร็จ', true);
+    }).catch(function() { cfgShowToast('❌ เชื่อมต่อไม่ได้', true); });
+}
+ 
+// ─────────────────────────────────────────────────────────────
+// Nav / Init hooks
+// ─────────────────────────────────────────────────────────────
+ 
+// เพิ่ม Analytics ใน bottom nav — เพิ่ม sheet-team item
+// (เพิ่มปุ่ม Analytics ใน openNavSheet sheet-team)
+(function patchNavSheet() {
+  var teamSheet = document.getElementById('sheet-team');
+  if (!teamSheet) return;
+  var existingItems = teamSheet.querySelectorAll('.sheet-nav-item');
+  if (existingItems.length >= 3) return; // already patched
+  var div = document.createElement('div');
+  div.className = 'sheet-nav-item';
+  div.setAttribute('onclick', 'sheetGo("analytics")');
+  div.innerHTML = '<div class="sheet-nav-icon" style="background:rgba(83,74,183,0.12);">📈</div>' +
+    '<div class="sheet-nav-info"><div class="sheet-nav-label">Analytics เชิงลึก</div><div class="sheet-nav-sub">Heatmap · บริการ · Retention</div></div>' +
+    '<div class="sheet-nav-arrow">›</div>';
+  var innerWrap = teamSheet.querySelector('div[style*="padding:10px"]');
+  if (innerWrap) innerWrap.appendChild(div);
+})();
+ 
+// เพิ่ม "ดูเพิ่มเติม" ปุ่มใน page-mem
+(function patchMemPage() {
+  var memList = document.getElementById('mem-list');
+  if (!memList) return;
+  var btnWrap = document.createElement('div');
+  btnWrap.style.cssText = 'text-align:center;margin:10px 0;';
+  btnWrap.innerHTML = '<button onclick="toggleMemberExtended()" style="padding:11px 24px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-family:\'Sarabun\',sans-serif;font-size:13px;font-weight:700;color:var(--ink-muted);cursor:pointer;">📊 สถิติ & Export สมาชิก</button>';
+  memList.parentNode.insertBefore(btnWrap, memList.nextSibling);
+  var memExt = document.getElementById('mem-extended');
+  if (memExt) memList.parentNode.insertBefore(memExt, btnWrap.nextSibling);
+  memExt.style.display = 'none';
+})();
+ 
+// เพิ่ม settings extension ใน page-settings
+(function patchSettingsPage() {
+  var settingsPage = document.getElementById('page-settings');
+  var extEl = document.getElementById('settings-extension');
+  if (!settingsPage || !extEl) return;
+  var saveBtnRow = settingsPage.querySelector('div[style*="gap:8px;padding-bottom:18px"]');
+  if (!saveBtnRow) return;
+  extEl.style.display = '';
+  settingsPage.insertBefore(extEl, saveBtnRow);
+})();
+ 
+// เพิ่ม page-analytics ใน DOM
+(function patchAnalyticsPage() {
+  var anaPage = document.getElementById('page-analytics');
+  if (!anaPage) return;
+  document.querySelectorAll('.page').forEach(function(p) {});
+  document.getElementById('ana-month-prev').addEventListener('click', function() { changeAnaMonth(-1); });
+  document.getElementById('ana-month-next').addEventListener('click', function() { changeAnaMonth(1); });
+  updateAnaMonthPill();
+  document.querySelectorAll('.ana-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() { switchAnaTab(this.getAttribute('data-ana')); });
+  });
+})();
+ 
+// override sheetGo ให้รองรับ 'analytics'
+var _origSheetGo = window.sheetGo;
+window.sheetGo = function(page) {
+  if (page === 'analytics') {
+    closeNavSheet();
+    document.querySelectorAll('.bnav-item').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+    var anaPage = document.getElementById('page-analytics');
+    if (anaPage) anaPage.classList.add('active');
+    currentPage = 'analytics';
+    window.scrollTo(0, 0);
+    updateAnaMonthPill();
+    renderAnaTab(anaTab);
+    return;
+  }
+  _origSheetGo(page);
+};
+ 
+// Load settings extension data when settings page opens
+var _origCfgLoad = window.cfgLoad;
+window.cfgLoad = function() {
+  _origCfgLoad();
+  initShopHours();
+  loadPromos();
+};
+ 
 
    
   // Auto-refresh
