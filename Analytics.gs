@@ -5,10 +5,10 @@
 
 // ── 1. Heatmap รายวัน x ช่วงเวลา ────────────────────────────
 // คืนค่า matrix [วันในสัปดาห์][ชั่วโมง] = ยอดรวม
-function getHeatmapData(periodKey) {
+function getHeatmapData(periodKey, sheetName) {
   try {
     var ss    = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName(SHEET_RECORDS);
+    var sheet = ss.getSheetByName(sheetName || SHEET_RECORDS);
     if (!sheet) return { ok: false, error: 'ไม่พบ Sheet รายการ' };
 
     var data = sheet.getDataRange().getValues();
@@ -167,11 +167,11 @@ function getServiceAnalytics(periodKey) {
 }
 
 // ── 4. Customer Retention (กลับมาใช้ซ้ำ) ────────────────────
-function getRetentionData(periodKey) {
+function getRetentionData(periodKey, sheetName) {
   try {
     var ss    = SpreadsheetApp.getActiveSpreadsheet();
     var memSheet = ss.getSheetByName(SHEET_MEMBER);
-    var recSheet = ss.getSheetByName(SHEET_RECORDS);
+    var recSheet = ss.getSheetByName(sheetName || SHEET_RECORDS);
     if (!memSheet || !recSheet) return { ok: false, error: 'ไม่พบ Sheet' };
 
     var memData = memSheet.getDataRange().getValues();
