@@ -2108,6 +2108,7 @@ body{
     <div style="padding:10px 14px 18px;">
       <div class="sheet-nav-item" onclick="sheetGo('staff')"><div class="sheet-nav-icon" style="background:rgba(91,155,213,0.12);">👥</div><div class="sheet-nav-info"><div class="sheet-nav-label">ภาพรวมพนักงาน</div><div class="sheet-nav-sub">ค่าคอม · รายรับ · อันดับรายเดือน</div></div><div class="sheet-nav-arrow">›</div></div>
       <div class="sheet-nav-item" onclick="sheetGoPin('payroll')"><div class="sheet-nav-icon" style="background:rgba(212,83,126,0.12);">💸</div><div class="sheet-nav-info"><div class="sheet-nav-label">เงินเดือนพนักงาน</div><div class="sheet-nav-sub">เงินเดือน + ค่าคอม + export</div></div><div style="display:flex;align-items:center;gap:7px;"><span class="pin-chip">🔐 PIN</span><div class="sheet-nav-arrow">›</div></div></div>
+      <div class="sheet-nav-item" onclick="openPayslipV2()"><div class="sheet-nav-icon" style="background:rgba(45,203,142,0.12);">🖨</div><div class="sheet-nav-info"><div class="sheet-nav-label">สลิปเงินเดือน</div><div class="sheet-nav-sub">พิมพ์สลิป · Export Excel/PDF · ดูย้อนหลังได้</div></div><div class="sheet-nav-arrow">›</div></div>
     </div>
   </div>
   <!-- Finance sheet -->
@@ -2119,6 +2120,7 @@ body{
     <div style="padding:10px 14px 18px;">
       <div class="sheet-nav-item" onclick="sheetGo('acct')"><div class="sheet-nav-icon" style="background:rgba(45,203,142,0.12);">🏦</div><div class="sheet-nav-info"><div class="sheet-nav-label">บัญชีรายรับ</div><div class="sheet-nav-sub">เงินสด · กสิกร · SCB · เมมเบอร์</div></div><div class="sheet-nav-arrow">›</div></div>
       <div class="sheet-nav-item" onclick="sheetGoPin('summary')"><div class="sheet-nav-icon" style="background:rgba(240,184,74,0.12);">📈</div><div class="sheet-nav-info"><div class="sheet-nav-label">สรุปกำไร-ขาดทุน</div><div class="sheet-nav-sub">รายรับ · ค่าใช้จ่าย · กำไรสุทธิ</div></div><div style="display:flex;align-items:center;gap:7px;"><span class="pin-chip">🔐 PIN</span><div class="sheet-nav-arrow">›</div></div></div>
+      <div class="sheet-nav-item" onclick="openPayslipV2()"><div class="sheet-nav-icon" style="background:rgba(45,203,142,0.12);">🖨</div><div class="sheet-nav-info"><div class="sheet-nav-label">สลิปเงินเดือน</div><div class="sheet-nav-sub">พิมพ์สลิป · Export Excel/PDF · ดูย้อนหลังได้</div></div><div class="sheet-nav-arrow">›</div></div>
     </div>
   </div>
   <!-- Manage sheet -->
@@ -3612,8 +3614,12 @@ function openPayslipV2() {
     mem:         parseFloat(document.getElementById('cfg-comm-mem')?.value  || 1)  / 100,
     baseSalary:  parseFloat(document.getElementById('payroll-base-salary')?.value || 15000),
   };
-  var payslipUrl = GAS_URL.replace('/exec', '/exec') + '?page=payslip';
-  window.open(payslipUrl, '_blank');
+  // ── เปิด Payslip จาก GitHub Pages ─────────────────────────
+  var url = (typeof PAYSLIP_URL !== 'undefined' && PAYSLIP_URL.indexOf('[your-username]') === -1)
+    ? PAYSLIP_URL
+    : 'https://[your-username].github.io/nail-kloset/Payslip.html';
+  var sep = url.indexOf('?') !== -1 ? '&' : '?';
+  window.open(url + sep + 'gasUrl=' + encodeURIComponent(GAS_URL), '_blank');
 }
 
    
