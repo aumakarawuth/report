@@ -52,6 +52,14 @@ function doGet(e) {
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 
+
+    // ── page=payslip → Payslip v2 ──
+  if (page === 'payslip') {
+    return HtmlService.createHtmlOutputFromFile('Payslip')
+      .setTitle('Nail Kloset — สลิปเงินเดือน v2')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+
   // ── มี action → เป็น API call ──
   if (action) {
     return _handleWebAPI(e);
@@ -118,7 +126,7 @@ function _handleWebAPI(e) {
 
             // ── Analytics ──────────────────────────────────────────
       case 'getHeatmapData':
-        result = getHeatmapData(p.periodKey || '');
+        result = getHeatmapData(p.periodKey || '', p.sheetName || '');
         break;
  
       case 'getStaffComparison':
@@ -126,11 +134,11 @@ function _handleWebAPI(e) {
         break;
  
       case 'getServiceAnalytics':
-        result = getServiceAnalytics(p.periodKey || '');
+        result = getServiceAnalytics(p.periodKey || '', p.sheetName || '');
         break;
  
       case 'getRetentionData':
-        result = getRetentionData(p.periodKey || '');
+       result = getRetentionData(p.periodKey || '', p.sheetName || '');
         break;
  
       // ── Member ─────────────────────────────────────────────
@@ -1092,4 +1100,11 @@ function _saveConfigFromWeb(p) {
 
   saveConfig(cfg);
   return { ok: true };
+}
+
+
+
+function getPayslipUrl() {
+  var url = ScriptApp.getService().getUrl();
+  return url + '?page=payslip';
 }
