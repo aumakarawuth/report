@@ -1611,6 +1611,7 @@ body{
 </div>
 
 <!-- ══ PAGE: PAYROLL ══ -->
+<div class="page" id="page-payroll">
 <div class="page-hd">
     <div class="page-hd-title">เงินเดือน <span>พนักงาน</span></div>
     <div class="page-hd-sub" id="payroll-sub">ระบบสลิปเงินเดือน v2</div>
@@ -1682,6 +1683,7 @@ body{
       🖨 เปิด Payslip v2 — พิมพ์ / Export
     </button>
   </div>
+</div>
 
 <!-- ══ PAGE: SUMMARY ══ -->
 <div class="page" id="page-summary">
@@ -2143,6 +2145,7 @@ body{
 <script>
 
 const PAYSLIP_URL = 'https://aumakarawuth.github.io/nail-kloset/Payslip.html';
+const GAS_URL = '<?= ScriptApp.getService().getUrl() ?>';
 
 let COMM={'ต่อขนตา':0.15,'ทำเล็บ':0.10,'สปามือ/เท้า':0.10,'แว็กขน':0.10};
 let MEM_COMM_RATE=0.01;
