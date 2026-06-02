@@ -2844,7 +2844,51 @@ function _renderSnapshotView(snap){document.getElementById('summary-form-area').
 border:1.5px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);border-radius:9px;padding:7px 12px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">แก้ไข</button></div><div class="summary-result-card"><div class="result-hd" style="background:${isProfit?'linear-gradient(135deg,#064E3B,#065F46)':'linear-gradient(135deg,#1A1025,#3D2D4A)'}"><div class="result-hd-lbl">กำไร / ขาดทุนสุทธิ — ${pLabel}</div><div class="result-hd-val ${isProfit?'profit':'loss'}">${isProfit?'+':'-'}฿${fmt(netProfit)}</div><div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:5px;">อัตรากำไร ${netRevenue>0?(netProfit/netRevenue*100).toFixed(1):0}% · ${isProfit?'✅ มีกำไร':'🔴 ขาดทุน'}</div></div><div class="result-rows"><div class="result-row"><div class="result-row-lbl">💸 รายรับสุทธิ<small>หักค่ารูดบัตร ฿${fmt(creditFee)}</small></div><div class="result-row-val val-income">฿${fmt(netRevenue)}</div></div><div style="padding:7px 20px 4px;background:var(--surface-2);font-size:11px;font-weight:700;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.6px;">ค่าใช้จ่าย Fixed</div><div class="result-row"><div class="result-row-lbl">ค่าเช่า + บริการ + ภาษี</div><div class="result-row-val val-expense">฿${fmt(snap.rent+snap.serviceFee+snap.tax)}</div></div><div class="result-row"><div class="result-row-lbl">ไอเย็น + เน็ต + EDC</div><div class="result-row-val val-expense">฿${fmt(snap.aircon+snap.net+(snap.edc||430))}</div></div>${snap.electric>0?`<div class="result-row"><div class="result-row-lbl">ค่าไฟ</div><div class="result-row-val val-expense">฿${fmt(snap.electric)}</div></div>`:''}<div class="result-row"><div class="result-row-lbl">รวม Fixed</div><div class="result-row-val val-expense">฿${fmt(fixedTotal)}</div></div><div style="padding:7px 20px 4px;background:var(--surface-2);font-size:11px;font-weight:700;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.6px;">ค่าพนักงาน (${staffCount} คน)</div><div class="result-row"><div class="result-row-lbl">เงินเดือน<small>${staffCount} × ฿${fmt(snap.baseSalary)}</small></div><div class="result-row-val val-expense">฿${fmt(totalSalary)}</div></div><div class="result-row"><div class="result-row-lbl">ค่าคอมบริการ</div><div class="result-row-val val-expense">฿${fmt(totalCommSvc)}</div></div><div class="result-row"><div class="result-row-lbl">ค่าคอมเมม</div><div class="result-row-val val-expense">฿${fmt(totalCommMem)}</div></div><div class="result-row"><div class="result-row-lbl">รวมพนักงาน</div><div class="result-row-val val-expense">฿${fmt(totalStaff)}</div></div>${(snap.extraItems||[]).length>0?`<div style="padding:7px 20px 4px;background:var(--surface-2);font-size:11px;font-weight:700;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.6px;">ค่าใช้จ่ายเพิ่มเติม</div>${(snap.extraItems||[]).map(function(i){return`<div class="result-row"><div class="result-row-lbl">${i.name}</div><div class="result-row-val val-expense">฿${fmt(i.amt)}</div></div>`;}).join('')}<div class="result-row"><div class="result-row-lbl">รวมเพิ่มเติม</div><div class="result-row-val val-expense">฿${fmt(extraTotal)}</div></div>`:''}
 <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:${isProfit?'rgba(45,203,142,0.07)':'rgba(212,83,126,0.07)'};border-top:2px solid ${isProfit?'rgba(45,203,142,0.3)':'rgba(212,83,126,0.3)'}"><div style="font-size:15px;font-weight:700;">รายรับ ฿${fmt(netRevenue)} − รายจ่าย ฿${fmt(totalExpense)}</div><div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:${isProfit?'var(--green)':'var(--rose-deep)'};">${isProfit?'+':'-'}฿${fmt(netProfit)}</div></div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;"><button onclick="_exportSnapExcel()" style="padding:14px;border-radius:12px;border:1.5px solid rgba(33,115,70,0.3);background:rgba(33,115,70,0.08);color:#217346;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">📊 Export Excel</button><button onclick="_exportSnapPDF()" style="padding:14px;border-radius:12px;border:1.5px solid rgba(232,69,122,0.3);background:rgba(232,69,122,0.08);color:var(--rose-deep);font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">📄 Export PDF</button></div>`;var _now2=new Date();var _snapNext=document.getElementById('snap-next-btn');if(_snapNext){var _isCur=(sumMonthY===_now2.getFullYear()&&sumMonthM===_now2.getMonth());_snapNext.disabled=_isCur;_snapNext.style.opacity=_isCur?'0.3':'1';}window._currentSnap={snap,netRevenue,creditFee,fixedTotal,extraTotal,totalSalary,totalCommSvc,totalCommMem,totalStaff,totalExpense,netProfit,isProfit,staffCount,selectedNames,pLabel,staffDataLocal};}
 function unlockSnapshot(){if(!confirm('ต้องการแก้ไขข้อมูลเดือนนี้?\nการแก้ไขจะ override ผลเดิม'))return;try{localStorage.removeItem(_snapshotKey(sumMonthY,sumMonthM));}catch(e){}_renderNormalSummary();}
+
+   function _prepareSnapResult() {
+  if (!window._currentSnap) return false;
+  var s = window._currentSnap;
+  lastCalcResult = {
+    netRevenue:     s.netRevenue,
+    creditFee:      s.creditFee,
+    fixedTotal:     s.fixedTotal,
+    totalStaffCost: s.totalStaff,
+    extraTotal:     s.extraTotal,
+    totalExpense:   s.totalExpense,
+    netProfit:      s.netProfit,
+    staffCount:     s.staffCount,
+    selectedNames:  s.selectedNames,
+    totalSalary:    s.totalSalary,
+    totalCommSvc:   s.totalCommSvc,
+    totalCommMem:   s.totalCommMem,
+    baseSalary:     s.snap.baseSalary,
+    extraItems:     s.snap.extraItems  || [],
+    expRent:        s.snap.rent,
+    expSvcFee:      s.snap.serviceFee,
+    expTax:         s.snap.tax,
+    expAircon:      s.snap.aircon,
+    expNet:         s.snap.net,
+    expEdc:         s.snap.edc        || 430,
+    expElectric:    s.snap.electric   || 0,
+    pLbl:           s.pLabel,
+    staffDataMap:   s.staffDataLocal
+  };
+  return true;
+}
+
 function _exportSnapExcel() {
+  if (!_prepareSnapResult()) return;
+  exportExcel();
+}
+
+function _exportSnapPDF() {
+  if (!_prepareSnapResult()) return;
+  exportPDF();
+}
+   
+   
+   
+   function _exportSnapExcel() {
   if (!_prepareSnapResult()) return;
   exportExcel();  // ← เรียกครั้งเดียวตรงนี้
 }
@@ -3106,13 +3150,13 @@ function renderAnaTab(tab) {
  
 // ── Heatmap ──────────────────────────────────────────────────
 function renderHeatmap(periodKey, sheetName) {
-   
-   var url = GAS_URL + '?action=getHeatmapData&periodKey=' + periodKey;
-  if (sheetName) url += '&sheetName=' + encodeURIComponent(sheetName);
-  fetch(url, { cache: 'no-cache' })
   var el = document.getElementById('heatmap-container');
   el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div>กำลังโหลด...</div>';
-  fetch(GAS_URL + '?action=getHeatmapData&periodKey=' + periodKey, { cache: 'no-cache' })
+
+  var url = GAS_URL + '?action=getHeatmapData&periodKey=' + periodKey;
+  if (sheetName) url += '&sheetName=' + encodeURIComponent(sheetName);
+
+  fetch(url, { cache: 'no-cache' })   // ← fetch เดียว มี sheetName ✅
     .then(function(r) { return r.json(); })
     .then(function(res) {
       if (!res || !res.ok) { el.innerHTML = '<div class="empty"><div class="empty-ico">⚠️</div>' + (res.error || 'โหลดไม่ได้') + '</div>'; return; }
@@ -3512,39 +3556,6 @@ function togglePromoActive(id) {
   if (!promo) return;
   var params = new URLSearchParams({ action: 'savePromo', id: promo.id, title: promo.title, desc: promo.desc || '', type: promo.type || 'fixed', discount: promo.discount, expire: promo.expire || '', active: promo.active ? 'false' : 'true' });
   fetch(GAS_URL + '?' + params.toString()).then(function(r) { return r.json(); }).then(function(res) { if (res && res.ok) loadPromos(); });
-}
-
-
-
-   function _prepareSnapResult() {
-  if (!window._currentSnap) return false;
-  var s = window._currentSnap;
-  lastCalcResult = {
-    netRevenue:    s.netRevenue,
-    creditFee:     s.creditFee,
-    fixedTotal:    s.fixedTotal,
-    totalStaffCost: s.totalStaff,
-    extraTotal:    s.extraTotal,
-    totalExpense:  s.totalExpense,
-    netProfit:     s.netProfit,
-    staffCount:    s.staffCount,
-    selectedNames: s.selectedNames,
-    totalSalary:   s.totalSalary,
-    totalCommSvc:  s.totalCommSvc,
-    totalCommMem:  s.totalCommMem,
-    baseSalary:    s.snap.baseSalary,
-    extraItems:    s.snap.extraItems || [],
-    expRent:       s.snap.rent,
-    expSvcFee:     s.snap.serviceFee,
-    expTax:        s.snap.tax,
-    expAircon:     s.snap.aircon,
-    expNet:        s.snap.net,
-    expEdc:        s.snap.edc || 430,
-    expElectric:   s.snap.electric || 0,
-    pLbl:          s.pLabel,
-    staffDataMap:  s.staffDataLocal
-  };
-  return true;
 }
 
    
