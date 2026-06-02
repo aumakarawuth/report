@@ -3209,6 +3209,7 @@ function _heatColor(intensity) {
  
 // ── Service Analytics ─────────────────────────────────────────
 function renderServiceAnalytics(periodKey, sheetName) {
+   var el = document.getElementById('ana-services-container'); 
   var url = GAS_URL + '?action=getServiceAnalytics&periodKey=' + periodKey;
   if (sheetName) url += '&sheetName=' + encodeURIComponent(sheetName);
 
@@ -3267,6 +3268,8 @@ function renderStaffComparison() {
  
 // ── Retention ─────────────────────────────────────────────────
 function renderRetention(periodKey, sheetName) {
+   var kpiEl  = document.getElementById('ana-retention-kpi');   // ← เพิ่ม
+  var listEl = document.getElementById('ana-retention-list');  // ← เพิ่ม
   var url = GAS_URL + '?action=getRetentionData&periodKey=' + periodKey;
   if (sheetName) url += '&sheetName=' + encodeURIComponent(sheetName);
 
