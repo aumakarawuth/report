@@ -2886,18 +2886,6 @@ function _exportSnapPDF() {
   exportPDF();
 }
    
-   
-   
-   function _exportSnapExcel() {
-  if (!_prepareSnapResult()) return;
-  exportExcel();  // ← เรียกครั้งเดียวตรงนี้
-}
-
-function _exportSnapPDF() {
-  if (!_prepareSnapResult()) return;
-  exportPDF();   // ← เรียก PDF อย่างเดียว ไม่ trigger Excel
-}
-   
 function changeSumMonth(dir){_saveLocalExtraExpenses(sumMonthY,sumMonthM);sumMonthM+=dir;if(sumMonthM<0){sumMonthM=11;sumMonthY--;}if(sumMonthM>11){sumMonthM=0;sumMonthY++;}updateSumMonthPill();if(dataLoaded){var targetSheet=_getSheetForMonth(sumMonthY,sumMonthM);_loadAndRender(targetSheet,renderSummaryPage);}}
 
 // Settings
@@ -3209,10 +3197,10 @@ function _heatColor(intensity) {
  
 // ── Service Analytics ─────────────────────────────────────────
 function renderServiceAnalytics(periodKey, sheetName) {
-   var el = document.getElementById('ana-services-container'); 
+  var el = document.getElementById('svc-analytics-list'); // ← id จริงใน HTML
+  el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div>กำลังโหลด...</div>';
   var url = GAS_URL + '?action=getServiceAnalytics&periodKey=' + periodKey;
   if (sheetName) url += '&sheetName=' + encodeURIComponent(sheetName);
-
   fetch(url, { cache: 'no-cache' })
     .then(function(r) { return r.json(); })
     .then(function(res) {
@@ -3268,8 +3256,9 @@ function renderStaffComparison() {
  
 // ── Retention ─────────────────────────────────────────────────
 function renderRetention(periodKey, sheetName) {
-   var kpiEl  = document.getElementById('ana-retention-kpi');   // ← เพิ่ม
-  var listEl = document.getElementById('ana-retention-list');  // ← เพิ่ม
+  var kpiEl  = document.getElementById('retention-kpi');   // ← id จริงใน HTML
+  var listEl = document.getElementById('churn-list');      // ← id จริงใน HTML
+  kpiEl.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div>กำลังโหลด...</div>';
   var url = GAS_URL + '?action=getRetentionData&periodKey=' + periodKey;
   if (sheetName) url += '&sheetName=' + encodeURIComponent(sheetName);
 
