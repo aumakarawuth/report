@@ -167,10 +167,11 @@ function replyExpenseSummaryLine(replyToken, period) {
 
   var byCat = {}, total = 0, count = 0;
   data.slice(1).forEach(function(row) {
-    var d   = parseExpenseDate(String(row[0] || ''));
-    var amt = Number(row[4]) || 0;
-    if (!d || d < start || d > now || amt <= 0) return;
-    var cat = String(row[2] || 'อื่นๆ');
+      // ลอง parse จากทั้ง col A และ col B
+      var d = parseExpenseDate(row[0]);
+      if (!d || isNaN(d)) d = parseExpenseDate(row[1]);
+      var amt = Number(row[4]) || 0;
+      if (!d || isNaN(d) || d < start || d > now || amt <= 0) return;
     byCat[cat] = (byCat[cat] || 0) + amt;
     total += amt;
     count++;
@@ -198,60 +199,60 @@ function replyExpenseSummaryLine(replyToken, period) {
 //  index.html เรียก:
 //  google.script.run.withSuccessHandler(fn).getExpenseData('month')
 
-function getExpenseData(periodKey) {
-  try {
-    var ss    = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName('รายจ่าย');
-    if (!sheet) return { error: 'ไม่พบ Sheet รายจ่าย', byCategory: {}, total: 0 };
+// function getExpenseData(periodKey) {
+//   try {
+//     var ss    = SpreadsheetApp.getActiveSpreadsheet();
+//     var sheet = ss.getSheetByName('รายจ่าย');
+//     if (!sheet) return { error: 'ไม่พบ Sheet รายจ่าย', byCategory: {}, total: 0 };
 
-    var data = sheet.getDataRange().getValues();
-    if (data.length <= 1) return { byCategory: {}, total: 0 };
+//     var data = sheet.getDataRange().getValues();
+//     if (data.length <= 1) return { byCategory: {}, total: 0 };
 
-    var parts       = (periodKey || '').split('-');
-    var filterYear  = parseInt(parts[0]) || 0;
-    var filterMonth = parseInt(parts[1]) || 0;
-    var tz          = Session.getScriptTimeZone();
+//     var parts       = (periodKey || '').split('-');
+//     var filterYear  = parseInt(parts[0]) || 0;
+//     var filterMonth = parseInt(parts[1]) || 0;
+//     var tz          = Session.getScriptTimeZone();
 
-    var byCategory = {};
-    var total      = 0;
+//     var byCategory = {};
+//     var total      = 0;
 
-    data.slice(1).forEach(function(row) {
-      // คอลัมน์ B (index 1) = วันที่ — เป็น Date object จาก Sheet โดยตรง
-      var rawDate = row[1];
-      if (!rawDate) return;
+//     data.slice(1).forEach(function(row) {
+//       // คอลัมน์ B (index 1) = วันที่ — เป็น Date object จาก Sheet โดยตรง
+//       var rawDate = row[1];
+//       if (!rawDate) return;
 
-      // รองรับทั้ง Date object และ string
-      var dateObj = (rawDate instanceof Date) ? rawDate : new Date(rawDate);
-      if (isNaN(dateObj.getTime())) return;
+//       // รองรับทั้ง Date object และ string
+//       var dateObj = (rawDate instanceof Date) ? rawDate : new Date(rawDate);
+//       if (isNaN(dateObj.getTime())) return;
 
-      if (filterYear && filterMonth) {
-        var rowYear  = parseInt(Utilities.formatDate(dateObj, tz, 'yyyy'));
-        var rowMonth = parseInt(Utilities.formatDate(dateObj, tz, 'MM'));
-        if (rowYear !== filterYear || rowMonth !== filterMonth) return;
-      }
+//       if (filterYear && filterMonth) {
+//         var rowYear  = parseInt(Utilities.formatDate(dateObj, tz, 'yyyy'));
+//         var rowMonth = parseInt(Utilities.formatDate(dateObj, tz, 'MM'));
+//         if (rowYear !== filterYear || rowMonth !== filterMonth) return;
+//       }
 
-      var category = String(row[2] || 'อื่นๆ').trim();
-      var amount   = parseFloat(row[4]) || 0;
-      if (amount <= 0) return;
+//       var category = String(row[2] || 'อื่นๆ').trim();
+//       var amount   = parseFloat(row[4]) || 0;
+//       if (amount <= 0) return;
 
-      if (!byCategory[category]) byCategory[category] = 0;
-      byCategory[category] += amount;
-      total += amount;
-    });
+//       if (!byCategory[category]) byCategory[category] = 0;
+//       byCategory[category] += amount;
+//       total += amount;
+//     });
 
-    Object.keys(byCategory).forEach(function(k) {
-      byCategory[k] = Math.round(byCategory[k] * 100) / 100;
-    });
+//     Object.keys(byCategory).forEach(function(k) {
+//       byCategory[k] = Math.round(byCategory[k] * 100) / 100;
+//     });
 
-    return {
-      byCategory: byCategory,
-      total:      Math.round(total * 100) / 100
-    };
+//     return {
+//       byCategory: byCategory,
+//       total:      Math.round(total * 100) / 100
+//     };
 
-  } catch(err) {
-    return { error: err.message, byCategory: {}, total: 0 };
-  }
-}
+//   } catch(err) {
+//     return { error: err.message, byCategory: {}, total: 0 };
+//   }
+// }
 
 
 // ============================================================
@@ -284,37 +285,21 @@ function getOrCreateExpenseSheet() {
 // แปลง "dd/MM/yyyy HH:mm" → Date
 function parseExpenseDate(val) {
   try {
-    // GAS return Date object จาก Sheet — จับตรงนี้ก่อน
-    if (val instanceof Date) return isNaN(val) ? null : val;
-
+    if (!val) return null;
+    // Date object จาก Sheet โดยตรง
+    if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
     // number (Excel serial)
     if (typeof val === 'number') return new Date(val);
-
     // string format dd/MM/yyyy หรือ dd/MM/yyyy HH:mm
     var str = String(val).trim();
     if (!str) return null;
     var parts = str.split(' ')[0].split('/');
     if (parts.length < 3) return null;
-    return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+    var d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+    return isNaN(d.getTime()) ? null : d;
   } catch (e) { return null; }
 }
 
-
-
-function debugExpense() {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('รายจ่าย');
-  if (!sheet) { Logger.log('ไม่พบ sheet รายจ่าย'); return; }
-  
-  var data = sheet.getDataRange().getValues();
-  Logger.log('จำนวนแถว: ' + data.length);
-  Logger.log('Header row: ' + JSON.stringify(data[0]));
-  if (data.length > 1) Logger.log('แถวที่ 2: ' + JSON.stringify(data[1]));
-  if (data.length > 2) Logger.log('แถวที่ 3: ' + JSON.stringify(data[2]));
-  
-  // ทดสอบ getExpenseData โดยตรง
-  var result = getExpenseData('month');
-  Logger.log('getExpenseData result: ' + JSON.stringify(result));
-}
 
 
 function debugExpense2() {
