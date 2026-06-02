@@ -98,13 +98,25 @@ function getMembersData() {
     if (data.length <= 1) return { members: [] };
     // คอลัมน์: [0]=เบอร์, [1]=ชื่อ, [2]=ยอด, [3]=lineId, [4]=expiry, [5]=รหัส4หลัก
     var members = data.slice(1).map(function(row) {
-      return {
-        phone:      String(row[0] || ''),
-        name:       String(row[1] || ''),
-        balance:    Number(row[2]) || 0,
-        lineId:     String(row[3] || '-'),
-        memberCode: String(row[5] || '-')
-      };
+  // parse expiry จาก col E (index 4)
+  var expiryVal = row[4];
+  var expiryStr = '';
+  if(expiryVal){
+    try {
+      var d = (expiryVal instanceof Date) ? expiryVal : new Date(expiryVal);
+      if(!isNaN(d.getTime())){
+        expiryStr = Utilities.formatDate(d, 'GMT+7', 'dd/MM/yyyy');
+      }
+    } catch(e) {}
+  }
+  return {
+    phone:      String(row[0] || ''),
+    name:       String(row[1] || ''),
+    balance:    Number(row[2]) || 0,
+    lineId:     String(row[3] || '-'),
+    expiry:     expiryStr,
+    memberCode: String(row[5] || '-')
+  };
     }).filter(function(m) { return m.phone !== '' || m.memberCode !== '-'; });
     members.sort(function(a, b) { return b.balance - a.balance; });
     return { members: members };
@@ -173,7 +185,6 @@ function handleEvent(event) {
   }
 
   var staff      = getStaff(userId);
-  var session    = getSession(userId);
 
   // ============================================================
   // [A] ลูกค้า / บุคคลที่ยังไม่ได้ลงทะเบียนเป็นพนักงาน
@@ -381,10 +392,13 @@ return callLineAPI('reply', {
    return replyFlexExpense(replyToken, expName, expAmount);
  }
  // ── ดูรายจ่าย ──────────────────────────────────────────
- if (msgText === 'รายจ่าย' || msgText === 'รายจ่ายเดือนนี้') {
-   clearSession(userId);
-   return replyExpenseSummaryLine(replyToken, 'month');
- }
+  if (msgText === 'รายจ่าย' || msgText === 'รายจ่ายเดือนนี้') {
+    clearSession(userId);
+    sheetLog('DEBUG: เข้า replyExpenseSummaryLine month');
+    var expResult = replyExpenseSummaryLine(replyToken, 'month');
+    sheetLog('DEBUG: replyExpenseSummaryLine เสร็จ');
+    return expResult;
+  }
  if (msgText === 'รายจ่ายวันนี้') {
    clearSession(userId);
    return replyExpenseSummaryLine(replyToken, 'today');
@@ -2572,4 +2586,113 @@ function testDirect() {
   Logger.log('byCategory keys: ' + Object.keys(result.byCategory || {}));
   Logger.log('total: ' + result.total);
   Logger.log('full: ' + JSON.stringify(result));
+}
+
+
+
+
+
+function autoNotifyExpiringSoon() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_MEMBER);
+  if (!sheet) return;
+
+  var data = sheet.getDataRange().getValues();
+  var now  = new Date();
+
+  var expire1  = []; // พรุ่งนี้
+  var expire7  = []; // 7 วัน
+  var expire30 = []; // 30 วัน
+
+  data.slice(1).forEach(function(row) {
+    var phone   = String(row[0] || '').replace(/'/g, '').trim();
+    var name    = String(row[1] || '');
+    var balance = parseFloat(row[2]) || 0;
+    var expiry  = row[4] ? new Date(row[4]) : null;
+
+    if (!expiry || isNaN(expiry) || !name) return;
+
+    var daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+
+    var member = { name: name, phone: phone, balance: balance, daysLeft: daysLeft };
+
+    if (daysLeft === 1)  expire1.push(member);
+    if (daysLeft === 7)  expire7.push(member);
+    if (daysLeft === 30) expire30.push(member);
+  });
+
+  var total = expire1.length + expire7.length + expire30.length;
+  if (total === 0) return;
+
+  // สร้างข้อความ
+  var lines = ['📋 แจ้งเตือนสมาชิกใกล้หมดอายุ\nกรุณาโทรติดตามลูกค้าค่ะ\n'];
+
+  if (expire1.length > 0) {
+    lines.push('🔴 พรุ่งนี้หมดอายุ (' + expire1.length + ' คน)');
+    expire1.forEach(function(m) {
+      lines.push('• ' + m.name + '\n  📞 ' + m.phone + '\n  💰 ฿' + m.balance.toLocaleString());
+    });
+    lines.push('');
+  }
+
+  if (expire7.length > 0) {
+    lines.push('🟡 เหลือ 7 วัน (' + expire7.length + ' คน)');
+    expire7.forEach(function(m) {
+      lines.push('• ' + m.name + '\n  📞 ' + m.phone + '\n  💰 ฿' + m.balance.toLocaleString());
+    });
+    lines.push('');
+  }
+
+  if (expire30.length > 0) {
+    lines.push('🟢 เหลือ 30 วัน (' + expire30.length + ' คน)');
+    expire30.forEach(function(m) {
+      lines.push('• ' + m.name + '\n  📞 ' + m.phone + '\n  💰 ฿' + m.balance.toLocaleString());
+    });
+  }
+
+  callLineAPI('push', {
+    to: ADMIN_USER_ID,
+    messages: [{ type: 'text', text: lines.join('\n') }]
+  }, false);
+
+  Logger.log('autoNotifyExpiringSoon: แจ้งเตือน ' + total + ' คน');
+}
+
+
+
+
+function setupExpiryNotifyTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'autoNotifyExpiringSoon') {
+      ScriptApp.deleteTrigger(t);
+    }
+  });
+
+  ScriptApp.newTrigger('autoNotifyExpiringSoon')
+    .timeBased()
+    .everyDays(1)
+    .atHour(10)
+    .create();
+
+  Logger.log('✅ ตั้ง Trigger สำเร็จ');
+}
+
+
+
+function testNotifyExpiry() {
+  // แสดงผลใน Logger โดยไม่ส่ง LINE จริง
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_MEMBER);
+  var data  = sheet.getDataRange().getValues();
+  var now   = new Date();
+
+  Logger.log('วันนี้: ' + Utilities.formatDate(now, 'GMT+7', 'dd/MM/yyyy'));
+  Logger.log('สมาชิกทั้งหมด: ' + (data.length - 1) + ' คน');
+  Logger.log('---');
+
+  data.slice(1).forEach(function(row) {
+    var name    = String(row[1] || '');
+    var expiry  = row[4] ? new Date(row[4]) : null;
+    if (!expiry || isNaN(expiry)) return;
+    var daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+    Logger.log(name + ' → เหลือ ' + daysLeft + ' วัน' + (daysLeft <= 30 ? ' ⚠️' : ''));
+  });
 }
