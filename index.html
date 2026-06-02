@@ -3617,7 +3617,8 @@ function openPayslipV2() {
     mem:        parseFloat(document.getElementById('cfg-comm-mem')?.value  || 1)  / 100,
     baseSalary: parseFloat(document.getElementById('payroll-base-salary')?.value || 15000),
   };
-  window.open(PAYSLIP_URL + '&gasUrl=' + encodeURIComponent(GAS_URL), '_blank');
+  var payslipUrl = GAS_URL + '?page=payslip';
+  window.open(payslipUrl, '_blank');
 }
 
    
