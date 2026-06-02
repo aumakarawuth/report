@@ -2914,9 +2914,617 @@ function exportExcel(){
 // Export PDF
 function exportPDF(){
   if(!lastCalcResult){alert('กรุณาคำนวณก่อน');return;}
-  const r=lastCalcResult;const isProfit=r.netProfit>=0;const now=new Date();const fmt=(v)=>Math.abs(v).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>รายงานกำไร-ขาดทุน — ${r.pLbl}</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Sarabun',sans-serif;background:#fff;color:#1A0A12;font-size:13px;}@page{size:A4;margin:0;}@media print{html,body{margin:0;padding:0;}}.page{width:210mm;min-height:297mm;padding:16mm 18mm;}.header{border-bottom:2px solid #D4537E;padding-bottom:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start;}.logo{font-family:'Sarabun',sans-serif;font-size:20px;font-weight:800;color:#1A0A12;}.logo span{color:#D4537E;}.doc-info{text-align:right;font-size:11px;color:#8A7090;}.result-banner{padding:16px 20px;border-radius:10px;margin-bottom:16px;background:${isProfit?'#E1F5EE':'#FBEAF0'};border:1.5px solid ${isProfit?'#9FE1CB':'#F4C0D1'};}.result-big{font-size:32px;font-weight:800;color:${isProfit?'#0F6E56':'#D4537E'};}.table{width:100%;border-collapse:collapse;font-size:12px;}.table th{background:#1A0A12;color:#fff;padding:7px 10px;text-align:left;font-size:11px;}.table td{padding:6px 10px;border-bottom:1px solid #F5EEF8;}.table .section-head td{background:#F5EEF8;font-weight:700;color:#3D2D4A;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;}.right{text-align:right;}.income{color:#0F6E56;font-weight:700;}.expense{color:#D4537E;font-weight:700;}.grand{background:${isProfit?'#E1F5EE':'#FBEAF0'};font-weight:800;font-size:14px;}.print-btn{position:fixed;bottom:20px;right:20px;background:#D4537E;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(212,83,126,0.4);}@media print{.print-btn{display:none;}}</style></head><body><button class="print-btn" onclick="window.print()">🖨 พิมพ์ / PDF</button><div class="page"><div class="header"><div><div class="logo">Nail <span>Kloset</span></div><div style="font-size:11px;color:#8A7090;margin-top:2px;">the crystal ratchapruek</div></div><div class="doc-info"><div style="font-size:14px;font-weight:700;color:#1A0A12;">${r.pLbl}</div><div>สร้างเมื่อ ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()+543}</div></div></div><div class="result-banner"><div style="font-size:11px;font-weight:700;color:#8A7090;margin-bottom:4px;">กำไร / ขาดทุนสุทธิ</div><div class="result-big">${isProfit?'+':'-'}฿${fmt(r.netProfit)}</div><div style="font-size:12px;color:#8A7090;margin-top:3px;">${r.pLbl} · อัตรากำไร ${r.netRevenue>0?(r.netProfit/r.netRevenue*100).toFixed(1):0}%</div></div><table class="table"><thead><tr><th>รายการ</th><th>หมายเหตุ</th><th class="right">จำนวนเงิน (฿)</th></tr></thead><tbody><tr class="section-head"><td colspan="3">รายรับ</td></tr><tr><td>รายรับสุทธิ</td><td>หักค่ารูดบัตร ฿${fmt(r.creditFee)}</td><td class="right income">฿${fmt(r.netRevenue)}</td></tr><tr class="section-head"><td colspan="3">ค่าใช้จ่ายคงที่</td></tr><tr><td>ค่าเช่า</td><td></td><td class="right expense">฿${fmt(r.expRent)}</td></tr><tr><td>ค่าบริการ</td><td></td><td class="right expense">฿${fmt(r.expSvcFee)}</td></tr><tr><td>ภาษี</td><td></td><td class="right expense">฿${fmt(r.expTax)}</td></tr><tr><td>ค่าบริการไอเย็น</td><td></td><td class="right expense">฿${fmt(r.expAircon)}</td></tr><tr><td>ค่าเน็ต+โทรศัพท์</td><td></td><td class="right expense">฿${fmt(r.expNet)}</td></tr><tr><td>ค่าเครื่อง EDC</td><td></td><td class="right expense">฿${fmt(r.expEdc||430)}</td></tr>${r.expElectric>0?`<tr><td>ค่าไฟ</td><td>ตามบิล</td><td class="right expense">฿${fmt(r.expElectric)}</td></tr>`:''}<tr><td colspan="2" style="font-weight:700;">รวมค่าใช้จ่ายคงที่</td><td class="right expense" style="font-weight:700;">฿${fmt(r.fixedTotal)}</td></tr><tr class="section-head"><td colspan="3">ค่าพนักงาน (${r.staffCount} คน)</td></tr><tr><td>เงินเดือน</td><td>${r.staffCount} × ฿${r.baseSalary.toLocaleString()}</td><td class="right expense">฿${fmt(r.totalSalary)}</td></tr><tr><td>ค่าคอมบริการ</td><td></td><td class="right expense">฿${fmt(r.totalCommSvc)}</td></tr><tr><td>ค่าคอมเมมเบอร์</td><td>1%</td><td class="right expense">฿${fmt(r.totalCommMem)}</td></tr><tr><td colspan="2" style="font-weight:700;">รวมค่าพนักงาน</td><td class="right expense" style="font-weight:700;">฿${fmt(r.totalStaffCost)}</td></tr>${r.extraItems.length>0?`<tr class="section-head"><td colspan="3">ค่าใช้จ่ายเพิ่มเติม</td></tr>${r.extraItems.map(i=>`<tr><td>${i.name}</td><td></td><td class="right expense">฿${fmt(i.amt)}</td></tr>`).join('')}<tr><td colspan="2" style="font-weight:700;">รวมเพิ่มเติม</td><td class="right expense" style="font-weight:700;">฿${fmt(r.extraTotal)}</td></tr>`:''}<tr class="grand"><td colspan="2">กำไร / ขาดทุนสุทธิ</td><td class="right" style="color:${isProfit?'#0F6E56':'#D4537E'};">${isProfit?'+':'-'}฿${fmt(r.netProfit)}</td></tr></tbody></table></div></body></html>`;
-  const w=window.open('','_blank');if(!w){alert('กรุณาอนุญาต Popup');return;}w.document.write(html);w.document.close();
+  const r=lastCalcResult;const isProfit=r.netProfit>=0;
+  const now=new Date();
+  const fmt=(v)=>Math.abs(v).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const fmtInt=(v)=>Math.abs(v).toLocaleString('th-TH',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const docNo='NK-'+now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+'-001';
+  const thMonths=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  const createdDate=now.getDate()+' '+thMonths[now.getMonth()]+' '+(now.getFullYear()+543);
+  const shopName=document.getElementById('cfg-shop-name')?.value||'Nail Kloset';
+  const shopBranch=document.getElementById('cfg-shop-branch')?.value||'the crystal ratchapruek';
+  const profitMargin=r.netRevenue>0?((r.netProfit/r.netRevenue)*100).toFixed(2):0;
+
+  const makeRow=(label,note,val,cls,bold)=>`
+    <tr class="${bold?'bold-row':''}">
+      <td class="label-cell">${label}</td>
+      <td class="note-cell">${note||''}</td>
+      <td class="amount-cell ${cls||''}">${val!==null?'฿'+fmt(val):''}</td>
+    </tr>`;
+
+  const makeSection=(title)=>`
+    <tr class="section-row">
+      <td colspan="3">${title}</td>
+    </tr>`;
+
+  const html=`<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>รายงานกำไร-ขาดทุน ${r.pLbl} — ${shopName}</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --ink:#0D0D0D;
+  --ink-2:#3A3A3A;
+  --ink-3:#6B6B6B;
+  --line:#D8D8D8;
+  --line-2:#EFEFEF;
+  --accent:${isProfit?'#0A5C3A':'#8B1A2B'};
+  --accent-pale:${isProfit?'#EAF5EE':'#FBF0F2'};
+  --accent-mid:${isProfit?'#1A9E6D':'#C0392B'};
+  --blue-dark:#0F2F5A;
+}
+@page{size:A4;margin:18mm 16mm 20mm 16mm;}
+@media print{
+  html,body{margin:0;padding:0;}
+  .no-print{display:none!important;}
+  .page-break{page-break-before:always;}
+  tr{page-break-inside:avoid;}
+}
+body{
+  font-family:'IBM Plex Sans Thai','Sarabun',sans-serif;
+  background:#F5F5F0;
+  color:var(--ink);
+  font-size:10pt;
+  line-height:1.5;
+}
+.print-wrapper{
+  background:#fff;
+  width:210mm;
+  min-height:297mm;
+  margin:0 auto;
+  padding:18mm 16mm 20mm;
+  box-shadow:0 4px 40px rgba(0,0,0,0.12);
+  position:relative;
+}
+
+/* ── WATERMARK ── */
+.watermark{
+  position:fixed;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%) rotate(-35deg);
+  font-size:72pt;
+  font-weight:800;
+  color:rgba(0,0,0,0.03);
+  white-space:nowrap;
+  pointer-events:none;
+  z-index:0;
+  letter-spacing:0.1em;
+}
+
+/* ── HEADER ── */
+.doc-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  padding-bottom:14px;
+  border-bottom:3px solid var(--ink);
+  margin-bottom:16px;
+}
+.brand-block{}
+.brand-name{
+  font-size:22pt;
+  font-weight:800;
+  color:var(--ink);
+  letter-spacing:-0.02em;
+  line-height:1;
+}
+.brand-name span{color:var(--accent-mid);}
+.brand-sub{
+  font-size:9pt;
+  color:var(--ink-3);
+  margin-top:3px;
+  font-weight:400;
+}
+.doc-info-block{text-align:right;}
+.doc-title{
+  font-size:14pt;
+  font-weight:700;
+  color:var(--blue-dark);
+  letter-spacing:0.03em;
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+.doc-meta-table{border-collapse:collapse;}
+.doc-meta-table td{
+  font-size:8.5pt;
+  padding:1px 0 1px 12px;
+  color:var(--ink-2);
+  vertical-align:top;
+}
+.doc-meta-table td:first-child{
+  color:var(--ink-3);
+  font-weight:500;
+  padding-left:0;
+  min-width:70px;
+}
+
+/* ── PERIOD BANNER ── */
+.period-banner{
+  background:var(--blue-dark);
+  color:#fff;
+  padding:10px 16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:16px;
+  border-radius:2px;
+}
+.period-label{
+  font-size:9pt;
+  opacity:0.6;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  margin-bottom:2px;
+}
+.period-value{
+  font-size:13pt;
+  font-weight:700;
+  letter-spacing:0.02em;
+}
+.period-right{text-align:right;}
+.period-right .lbl{font-size:8pt;opacity:0.6;margin-bottom:2px;}
+.period-right .val{font-size:11pt;font-weight:600;}
+
+/* ── RESULT HERO ── */
+.result-hero{
+  border:2px solid var(--accent);
+  background:var(--accent-pale);
+  padding:14px 18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+  border-radius:2px;
+}
+.result-hero-left .lbl{
+  font-size:8.5pt;
+  font-weight:600;
+  color:var(--accent);
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  margin-bottom:4px;
+}
+.result-hero-left .val{
+  font-size:26pt;
+  font-weight:800;
+  color:var(--accent);
+  line-height:1;
+  letter-spacing:-0.02em;
+}
+.result-hero-left .val-sub{
+  font-size:9pt;
+  color:var(--accent-mid);
+  margin-top:4px;
+}
+.result-hero-right{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px 20px;
+  text-align:right;
+}
+.hero-stat .s-lbl{
+  font-size:7.5pt;
+  color:var(--ink-3);
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  margin-bottom:2px;
+}
+.hero-stat .s-val{
+  font-size:11pt;
+  font-weight:700;
+  color:var(--ink);
+}
+
+/* ── MAIN TABLE ── */
+.main-table{
+  width:100%;
+  border-collapse:collapse;
+  margin-bottom:20px;
+  font-size:9.5pt;
+}
+.main-table thead tr{
+  background:var(--ink);
+  color:#fff;
+}
+.main-table thead th{
+  padding:7px 10px;
+  font-weight:600;
+  font-size:8.5pt;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+}
+.main-table thead th:last-child{text-align:right;}
+.main-table thead th:nth-child(2){text-align:center;}
+.label-cell{padding:6px 10px;color:var(--ink-2);}
+.note-cell{padding:6px 6px;color:var(--ink-3);font-size:8.5pt;text-align:center;}
+.amount-cell{padding:6px 10px;text-align:right;font-variant-numeric:tabular-nums;font-weight:500;}
+.amount-income{color:#0A5C3A;font-weight:600;}
+.amount-expense{color:#8B1A2B;}
+.amount-neutral{color:var(--ink-2);}
+.main-table tr:nth-child(even) td{background:#FAFAF8;}
+.section-row td{
+  background:var(--ink);
+  color:#fff;
+  padding:5px 10px;
+  font-weight:700;
+  font-size:8pt;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+}
+.bold-row td{
+  font-weight:700;
+  color:var(--ink);
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  background:#F5F5F0!important;
+}
+.grand-row td{
+  font-size:11pt;
+  font-weight:800;
+  padding:10px 10px;
+  border-top:3px solid var(--ink);
+  border-bottom:3px solid var(--ink);
+  background:${isProfit?'#EAF5EE':'#FBF0F2'}!important;
+  color:var(--accent);
+}
+.sub-row td{background:#F8F8F5!important;}
+.indent td:first-child{padding-left:22px;}
+
+/* ── SUMMARY FOOTER ── */
+.summary-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:0;
+  border:1.5px solid var(--line);
+  margin-bottom:20px;
+  border-radius:2px;
+  overflow:hidden;
+}
+.sum-cell{
+  padding:10px 14px;
+  border-right:1px solid var(--line);
+}
+.sum-cell:last-child{border-right:none;}
+.sum-cell .s-lbl{
+  font-size:7.5pt;
+  color:var(--ink-3);
+  text-transform:uppercase;
+  letter-spacing:0.07em;
+  margin-bottom:3px;
+  font-weight:500;
+}
+.sum-cell .s-val{
+  font-size:12pt;
+  font-weight:700;
+  color:var(--ink);
+}
+.sum-cell .s-val.pos{color:#0A5C3A;}
+.sum-cell .s-val.neg{color:#8B1A2B;}
+
+/* ── STAFF TABLE ── */
+.staff-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:9pt;
+  margin-bottom:20px;
+  border:1px solid var(--line);
+  border-radius:2px;
+  overflow:hidden;
+}
+.staff-table thead tr{background:#2C3E50;color:#fff;}
+.staff-table thead th{
+  padding:6px 10px;
+  font-weight:600;
+  font-size:8pt;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  text-align:left;
+}
+.staff-table thead th:not(:first-child){text-align:right;}
+.staff-table td{
+  padding:6px 10px;
+  border-bottom:1px solid var(--line-2);
+  color:var(--ink-2);
+}
+.staff-table td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums;}
+.staff-table tr:last-child td{
+  border-bottom:none;
+  font-weight:700;
+  background:#F5F5F0;
+  color:var(--ink);
+  border-top:2px solid var(--ink);
+}
+.staff-table tr:nth-child(even) td{background:#FAFAF8;}
+.staff-table tr:last-child td:nth-child(even){background:#F5F5F0;}
+
+/* ── REMARK BOX ── */
+.remark-box{
+  border:1px solid var(--line);
+  padding:10px 14px;
+  margin-bottom:16px;
+  border-radius:2px;
+  background:#FAFAF8;
+}
+.remark-title{
+  font-size:8pt;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--ink-3);
+  margin-bottom:6px;
+}
+.remark-row{
+  display:flex;
+  gap:6px;
+  font-size:8.5pt;
+  color:var(--ink-2);
+  margin-bottom:3px;
+}
+.remark-row .dot{color:var(--ink-3);}
+
+/* ── FOOTER ── */
+.doc-footer{
+  margin-top:24px;
+  padding-top:12px;
+  border-top:1.5px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  font-size:8pt;
+  color:var(--ink-3);
+}
+.sign-block{text-align:center;min-width:140px;}
+.sign-line{
+  border-bottom:1px solid var(--ink-3);
+  height:30px;
+  margin-bottom:4px;
+}
+.sign-label{font-size:8pt;color:var(--ink-3);}
+.footer-note{font-size:7.5pt;text-align:center;color:var(--ink-3);}
+
+/* ── PRINT BUTTON ── */
+.print-btn{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--blue-dark);color:#fff;
+  border:none;border-radius:6px;
+  padding:13px 28px;
+  font-family:'IBM Plex Sans Thai','Sarabun',sans-serif;
+  font-size:13pt;font-weight:700;
+  cursor:pointer;
+  box-shadow:0 4px 20px rgba(0,0,0,0.25);
+  z-index:100;
+  display:flex;align-items:center;gap:8px;
+}
+.print-btn:hover{background:#1a3f6e;}
+@media print{.print-btn,.no-print{display:none!important;}}
+
+/* ── SECTION LABEL ── */
+.section-label{
+  font-size:8.5pt;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--ink-3);
+  margin:16px 0 6px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.section-label::after{
+  content:'';flex:1;
+  height:1px;background:var(--line);
+}
+</style>
+</head>
+<body>
+<div class="watermark">${shopName.toUpperCase()}</div>
+
+<button class="print-btn no-print" onclick="window.print()">🖨 พิมพ์ / บันทึก PDF</button>
+
+<div class="print-wrapper">
+
+  <!-- HEADER -->
+  <div class="doc-header">
+    <div class="brand-block">
+      <div class="brand-name">Nail <span>Kloset</span></div>
+      <div class="brand-sub">${shopBranch}</div>
+      <div class="brand-sub" style="margin-top:2px;color:#888;">ประเภทกิจการ: ร้านทำเล็บและบิวตี้</div>
+    </div>
+    <div class="doc-info-block">
+      <div class="doc-title">งบกำไรขาดทุน</div>
+      <table class="doc-meta-table">
+        <tr><td>เลขที่เอกสาร</td><td><strong>${docNo}</strong></td></tr>
+        <tr><td>ช่วงเวลา</td><td><strong>${r.pLbl}</strong></td></tr>
+        <tr><td>วันที่จัดทำ</td><td>${createdDate}</td></tr>
+        <tr><td>จัดทำโดย</td><td>${shopName}</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- PERIOD BANNER -->
+  <div class="period-banner">
+    <div>
+      <div class="period-label">รายงานประจำงวด</div>
+      <div class="period-value">${r.pLbl}</div>
+    </div>
+    <div class="period-right">
+      <div class="lbl">สถานะ</div>
+      <div class="val">${isProfit?'✅ มีกำไรสุทธิ':'🔴 ขาดทุนสุทธิ'}</div>
+    </div>
+  </div>
+
+  <!-- RESULT HERO -->
+  <div class="result-hero">
+    <div class="result-hero-left">
+      <div class="lbl">กำไร / ขาดทุนสุทธิ</div>
+      <div class="val">${isProfit?'+':'-'}฿${fmt(r.netProfit)}</div>
+      <div class="val-sub">อัตรากำไร ${profitMargin}% · ${isProfit?'มีกำไร':'ขาดทุน'} ฿${fmtInt(r.netProfit)} บาท</div>
+    </div>
+    <div class="result-hero-right">
+      <div class="hero-stat">
+        <div class="s-lbl">รายรับสุทธิ</div>
+        <div class="s-val">฿${fmt(r.netRevenue)}</div>
+      </div>
+      <div class="hero-stat">
+        <div class="s-lbl">ค่าใช้จ่ายรวม</div>
+        <div class="s-val">฿${fmt(r.totalExpense)}</div>
+      </div>
+      <div class="hero-stat">
+        <div class="s-lbl">ค่าใช้จ่าย Fixed</div>
+        <div class="s-val">฿${fmt(r.fixedTotal)}</div>
+      </div>
+      <div class="hero-stat">
+        <div class="s-lbl">ค่าพนักงาน</div>
+        <div class="s-val">฿${fmt(r.totalStaffCost)}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN STATEMENT TABLE -->
+  <div class="section-label">งบกำไรขาดทุน — รายละเอียด</div>
+  <table class="main-table">
+    <thead>
+      <tr>
+        <th style="width:46%;text-align:left;">รายการ</th>
+        <th style="width:30%;text-align:center;">หมายเหตุ</th>
+        <th style="width:24%;text-align:right;">จำนวนเงิน (บาท)</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${makeSection('1. รายได้')}
+      ${makeRow('รายรับจากการให้บริการ (Gross)','','','')}
+      <tr class="indent"><td class="label-cell" style="padding-left:22px;">รายรับก่อนหักค่าธรรมเนียม</td><td class="note-cell">—</td><td class="amount-cell amount-income">฿${fmt(r.netRevenue+r.creditFee)}</td></tr>
+      <tr class="indent"><td class="label-cell" style="padding-left:22px;">หักค่าธรรมเนียมบัตรเครดิต (MDR)</td><td class="note-cell">${(CREDIT_FEE_RATE*100).toFixed(2)}%</td><td class="amount-cell amount-expense">-฿${fmt(r.creditFee)}</td></tr>
+      ${makeRow('รายรับสุทธิ (Net Revenue)','หลังหักค่าธรรมเนียมแล้ว',r.netRevenue,'amount-income',true)}
+
+      ${makeSection('2. ค่าใช้จ่ายคงที่ (Fixed Costs)')}
+      ${makeRow('ค่าเช่าสถานที่','Fixed',r.expRent,'amount-expense')}
+      ${makeRow('ค่าบริการส่วนกลาง','Fixed',r.expSvcFee,'amount-expense')}
+      ${makeRow('ภาษี / อากร','Fixed',r.expTax,'amount-expense')}
+      ${makeRow('ค่าบริการระบบปรับอากาศ','Fixed',r.expAircon,'amount-expense')}
+      ${makeRow('ค่าอินเทอร์เน็ต / โทรคมนาคม','Fixed',r.expNet,'amount-expense')}
+      ${makeRow('ค่าเครื่อง EDC / ค่าธรรมเนียมรูดบัตร','Fixed',r.expEdc||430,'amount-expense')}
+      ${r.expElectric>0?makeRow('ค่าไฟฟ้า','ตามบิลจริง',r.expElectric,'amount-expense'):''}
+      ${makeRow('รวมค่าใช้จ่ายคงที่','',r.fixedTotal,'amount-expense',true)}
+
+      ${makeSection('3. ค่าใช้จ่ายบุคลากร (Personnel Costs)')}
+      ${makeRow(`เงินเดือนพนักงาน (${r.staffCount} คน)`,`${r.staffCount} × ฿${r.baseSalary.toLocaleString()}`,r.totalSalary,'amount-expense')}
+      ${makeRow('ค่าคอมมิชชั่นบริการ','ตามอัตราแต่ละบริการ',r.totalCommSvc,'amount-expense')}
+      ${makeRow('ค่าคอมมิชชั่นขายสมาชิก','1% ของยอดขายสมาชิก',r.totalCommMem,'amount-expense')}
+      ${makeRow('รวมค่าใช้จ่ายบุคลากร','',r.totalStaffCost,'amount-expense',true)}
+
+      ${r.extraItems&&r.extraItems.length>0?`
+      ${makeSection('4. ค่าใช้จ่ายอื่น (Other Expenses)')}
+      ${r.extraItems.map(i=>makeRow(i.name,'อื่นๆ',i.amt,'amount-expense')).join('')}
+      ${makeRow('รวมค่าใช้จ่ายอื่น','',r.extraTotal,'amount-expense',true)}
+      `:''}
+
+      ${makeSection('สรุปผลการดำเนินงาน')}
+      ${makeRow('รายรับสุทธิรวม','',r.netRevenue,'amount-income')}
+      ${makeRow('ค่าใช้จ่ายรวมทั้งสิ้น','',r.totalExpense,'amount-expense')}
+      <tr class="grand-row">
+        <td class="label-cell"><strong>${isProfit?'กำไรสุทธิ (Net Profit)':'ขาดทุนสุทธิ (Net Loss)'}</strong></td>
+        <td class="note-cell" style="text-align:center;font-size:8.5pt;">${r.pLbl}</td>
+        <td class="amount-cell" style="font-size:12pt;"><strong>${isProfit?'+':'-'}฿${fmt(r.netProfit)}</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SUMMARY KPI GRID -->
+  <div class="section-label">สรุปอัตราส่วนทางการเงิน</div>
+  <div class="summary-grid">
+    <div class="sum-cell">
+      <div class="s-lbl">อัตรากำไรสุทธิ</div>
+      <div class="s-val ${isProfit?'pos':'neg'}">${profitMargin}%</div>
+    </div>
+    <div class="sum-cell">
+      <div class="s-lbl">สัดส่วนค่าพนักงาน</div>
+      <div class="s-val">${r.netRevenue>0?((r.totalStaffCost/r.netRevenue)*100).toFixed(1):0}%</div>
+    </div>
+    <div class="sum-cell">
+      <div class="s-lbl">สัดส่วนค่าใช้จ่าย Fixed</div>
+      <div class="s-val">${r.netRevenue>0?((r.fixedTotal/r.netRevenue)*100).toFixed(1):0}%</div>
+    </div>
+  </div>
+
+  <!-- STAFF TABLE -->
+  ${r.selectedNames&&r.selectedNames.length>0?`
+  <div class="section-label">รายละเอียดค่าตอบแทนพนักงาน</div>
+  <table class="staff-table">
+    <thead>
+      <tr>
+        <th>ชื่อพนักงาน</th>
+        <th>เงินเดือนฐาน (฿)</th>
+        <th>ค่าคอมบริการ (฿)</th>
+        <th>ค่าคอมสมาชิก (฿)</th>
+        <th>รวมทั้งสิ้น (฿)</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${(r.selectedNames||[]).map(name=>{
+        const d=r.staffDataMap&&r.staffDataMap[name]?r.staffDataMap[name]:{commFloat:0};
+        const commSvc=Math.round(d.commFloat||0);
+        const commMem=r.totalCommMem&&r.staffCount?Math.round(r.totalCommMem/r.staffCount):0;
+        const total=r.baseSalary+commSvc+commMem;
+        return`<tr>
+          <td>${name}</td>
+          <td>฿${r.baseSalary.toLocaleString()}</td>
+          <td>฿${commSvc.toLocaleString()}</td>
+          <td>฿${commMem.toLocaleString()}</td>
+          <td><strong>฿${total.toLocaleString()}</strong></td>
+        </tr>`;
+      }).join('')}
+      <tr>
+        <td>รวมทั้งหมด (${r.staffCount} คน)</td>
+        <td>฿${r.totalSalary.toLocaleString()}</td>
+        <td>฿${r.totalCommSvc.toLocaleString()}</td>
+        <td>฿${r.totalCommMem.toLocaleString()}</td>
+        <td>฿${r.totalStaffCost.toLocaleString()}</td>
+      </tr>
+    </tbody>
+  </table>
+  `:''}
+
+  <!-- REMARK -->
+  <div class="remark-box">
+    <div class="remark-title">หมายเหตุ / Notes</div>
+    <div class="remark-row"><span class="dot">1.</span><span>รายรับสุทธิคำนวณหลังหักค่าธรรมเนียมบัตรเครดิต (MDR Rate ${(CREDIT_FEE_RATE*100).toFixed(2)}%) เรียบร้อยแล้ว</span></div>
+    <div class="remark-row"><span class="dot">2.</span><span>ค่าคอมมิชชั่นบริการคำนวณตามอัตราที่กำหนด: ทำเล็บ ${(COMM['ทำเล็บ']*100).toFixed(0)}%, ต่อขนตา ${(COMM['ต่อขนตา']*100).toFixed(0)}%, สปามือ/เท้า ${(COMM['สปามือ/เท้า']*100).toFixed(0)}%, แว็กขน ${(COMM['แว็กขน']*100).toFixed(0)}%</span></div>
+    <div class="remark-row"><span class="dot">3.</span><span>ค่าคอมมิชชั่นสมาชิก ${(MEM_COMM_RATE*100).toFixed(1)}% คำนวณจากยอดขายสมาชิกทั้งหมดในเดือน หารเท่าๆ กันทุกคน</span></div>
+    <div class="remark-row"><span class="dot">4.</span><span>เอกสารนี้จัดทำโดยระบบ ${shopName} · เลขที่เอกสาร ${docNo}</span></div>
+  </div>
+
+  <!-- FOOTER / SIGNATURE -->
+  <div class="doc-footer">
+    <div class="footer-note">
+      <div>เอกสารนี้จัดทำโดยระบบบัญชีภายใน ${shopName}</div>
+      <div style="margin-top:2px;">จัดทำเมื่อ ${createdDate} · เลขที่ ${docNo}</div>
+    </div>
+    <div style="display:flex;gap:30px;">
+      <div class="sign-block">
+        <div class="sign-line"></div>
+        <div class="sign-label">ผู้จัดทำ</div>
+        <div class="sign-label" style="color:#aaa;font-size:7pt;">Prepared by</div>
+      </div>
+      <div class="sign-block">
+        <div class="sign-line"></div>
+        <div class="sign-label">ผู้อนุมัติ</div>
+        <div class="sign-label" style="color:#aaa;font-size:7pt;">Approved by</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>`;
+
+  const w=window.open('','_blank');
+  if(!w){alert('กรุณาอนุญาต Popup');return;}
+  w.document.write(html);
+  w.document.close();
 }
 
 // Payroll Page
