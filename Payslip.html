@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Nail Kloset — สลิปเงินเดือน v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+/* ═══════════════════════════════════════════════════════════
+   NAIL KLOSET PAYSLIP v2
+   Aesthetic: Luxury dark ink × rose gold — editorial magazine
+═══════════════════════════════════════════════════════════ */
+:root {
+  --rose:       #D4537E;
+  --rose-deep:  #B8365F;
+  --rose-pale:  #FBEAF0;
+  --rose-b:     #F4C0D1;
+  --teal:       #0F6E56;
+  --teal-pale:  #E1F5EE;
+  --purple:     #534AB7;
+  --purple-pale:#EEEDFE;
+  --amber:      #BA7517;
+  --amber-pale: #FAEEDA;
+  --blue:       #185FA5;
+  --green:      #2DCB8E;
+  --gold:       #F0B84A;
+  --ink:        #1A0A12;
+  --ink-soft:   #3D2D4A;
+  --ink-muted:  #8A7090;
+  --surface:    #FDFAFC;
+  --surface-2:  #F5EEF8;
+  --card:       #FFFFFF;
+  --border:     rgba(212,83,126,0.14);
+  --border-2:   rgba(212,83,126,0.25);
+  --shadow:     0 4px 24px rgba(26,10,18,0.10);
+  --shadow-lg:  0 8px 40px rgba(26,10,18,0.14);
+}
+
+[data-theme="dark"] {
+  --rose:       #F472A0;
+  --rose-deep:  #E8457A;
+  --rose-pale:  #2D1620;
+  --rose-b:     #5C2235;
+  --teal:       #34D399;
+  --teal-pale:  #0D2D22;
+  --purple:     #A5A0FF;
+  --purple-pale:#1E1B3A;
+  --amber:      #FCD34D;
+  --amber-pale: #2D2005;
+  --blue:       #60A5FA;
+  --green:      #34D399;
+  --gold:       #FCD34D;
+  --ink:        #F9FAFB;
+  --ink-soft:   #E5E7EB;
+  --ink-muted:  #9CA3AF;
+  --surface:    #111827;
+  --surface-2:  #1F2937;
+  --card:       #1F2937;
+  --border:     rgba(244,114,160,0.18);
+  --border-2:   rgba(244,114,160,0.30);
+  --shadow:     0 4px 24px rgba(0,0,0,0.30);
+  --shadow-lg:  0 8px 40px rgba(0,0,0,0.40);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { overflow-x: hidden; width: 100%; }
+body {
+  font-family: 'Sarabun', sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+  min-height: 100vh;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* ── TOPBAR ─────────────────────────────────────────────── */
+.topbar {
+  background: var(--ink);
+  padding: 13px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.30);
+}
+[data-theme="dark"] .topbar { background: #0D1117; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+.logo-wrap { display: flex; align-items: center; gap: 10px; }
+.logo-icon {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--rose), var(--purple));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; box-shadow: 0 3px 10px rgba(212,83,126,0.4);
+}
+.logo-txt { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: #fff; }
+.logo-txt span { color: var(--rose); }
+.logo-sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-left: 6px; font-family: 'Sarabun', sans-serif; font-weight: 400; }
+.topbar-actions { display: flex; gap: 6px; align-items: center; }
+.topbar-btn {
+  background: rgba(255,255,255,0.1); border: none;
+  color: rgba(255,255,255,0.8); border-radius: 9px;
+  padding: 7px 13px; font-family: 'Sarabun', sans-serif;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: background 0.15s; white-space: nowrap;
+}
+.topbar-btn:active { background: rgba(255,255,255,0.22); }
+.topbar-btn.primary { background: linear-gradient(135deg, var(--rose), var(--rose-deep)); color: #fff; }
+.topbar-btn.teal   { background: linear-gradient(135deg, var(--teal), #085041); color: #fff; }
+.dark-toggle {
+  background: rgba(255,255,255,0.1); border: none;
+  color: rgba(255,255,255,0.75); border-radius: 9px;
+  padding: 7px 9px; font-size: 15px; cursor: pointer;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+}
+.dark-toggle:active { background: rgba(255,255,255,0.22); }
+
+/* ── LAYOUT ─────────────────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  min-height: calc(100vh - 57px);
+}
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: relative; top: 0; max-height: none; border-right: none; border-bottom: 1.5px solid var(--border); }
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+.sidebar {
+  background: var(--card);
+  border-right: 1.5px solid var(--border);
+  padding: 18px 14px 80px;
+  overflow-y: auto;
+  max-height: calc(100vh - 57px);
+  position: sticky; top: 57px;
+}
+[data-theme="dark"] .sidebar { background: #1a2234; }
+
+.section-hd {
+  font-size: 11px; font-weight: 700; color: var(--ink-muted);
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 7px;
+}
+.section-hd::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* Month Picker */
+.month-picker {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface-2); border-radius: 12px; padding: 9px 12px;
+  margin-bottom: 14px;
+}
+.month-nav {
+  width: 32px; height: 32px; border: none;
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 8px; font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; color: var(--ink);
+}
+.month-nav:active { background: var(--rose-pale); border-color: var(--rose); }
+.month-lbl {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px; font-weight: 700; color: var(--ink);
+}
+
+/* Config Card */
+.cfg-card {
+  background: var(--surface-2); border-radius: 13px;
+  padding: 13px; margin-bottom: 13px;
+}
+.cfg-card-title {
+  font-size: 11px; font-weight: 700; color: var(--ink-muted);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 9px;
+}
+.cfg-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 0;
+}
+.cfg-label { font-size: 12px; color: var(--ink-soft); flex: 1; }
+.cfg-input-wrap { display: flex; align-items: center; gap: 4px; }
+.cfg-unit { font-size: 11px; color: var(--ink-muted); }
+.cfg-input {
+  padding: 6px 8px; border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--card); color: var(--ink);
+  font-family: 'Sarabun', sans-serif;
+  font-size: 12px; font-weight: 700;
+  text-align: right; outline: none; width: 76px;
+}
+.cfg-input:focus { border-color: var(--rose); background: var(--card); }
+.cfg-apply-btn {
+  width: 100%; padding: 9px; margin-top: 9px;
+  border-radius: 9px; border: none;
+  background: linear-gradient(135deg, var(--rose), var(--rose-deep));
+  color: #fff; font-family: 'Sarabun', sans-serif;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  transition: all 0.15s;
+}
+.cfg-apply-btn:active { transform: scale(0.98); }
+
+/* Staff List */
+.staff-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 10px 11px; border-radius: 11px;
+  cursor: pointer; transition: all 0.15s;
+  margin-bottom: 5px; border: 1.5px solid transparent;
+}
+.staff-item:hover { background: var(--surface-2); }
+.staff-item.active { background: var(--rose-pale); border-color: var(--rose); }
+[data-theme="dark"] .staff-item.active { background: var(--rose-pale); }
+.staff-emo {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.staff-info { flex: 1; min-width: 0; }
+.staff-name-lbl { font-size: 13px; font-weight: 700; color: var(--ink); }
+.staff-meta-lbl { font-size: 11px; color: var(--ink-muted); }
+.staff-total-lbl {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px; font-weight: 700; color: var(--teal); flex-shrink: 0;
+}
+
+/* Sidebar Buttons */
+.sidebar-action-btn {
+  width: 100%; padding: 12px; border-radius: 11px; border: none;
+  font-family: 'Sarabun', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; margin-top: 6px; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+}
+.sidebar-action-btn:active { transform: scale(0.98); }
+.btn-rose { background: linear-gradient(135deg, var(--rose), var(--rose-deep)); color: #fff; box-shadow: 0 4px 14px rgba(212,83,126,0.3); }
+.btn-blue { background: linear-gradient(135deg, #185FA5, #0C447C); color: #fff; }
+.btn-teal { background: linear-gradient(135deg, var(--teal), #085041); color: #fff; }
+.btn-amber { background: linear-gradient(135deg, var(--amber), #854F0B); color: #fff; }
+.btn-ghost { background: var(--surface-2); color: var(--ink-muted); border: 1.5px solid var(--border); }
+
+/* ── CONTENT AREA ─────────────────────────────────────────── */
+.content-area { padding: 20px; overflow-y: auto; }
+@media (max-width: 768px) { .content-area { padding: 12px; } }
+
+/* Empty */
+.empty-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 380px; gap: 10px; color: var(--ink-muted);
+}
+.empty-ico { font-size: 56px; opacity: 0.4; }
+.empty-txt { font-size: 15px; font-weight: 600; }
+.empty-sub { font-size: 12px; opacity: 0.7; }
+
+/* Loading */
+.loading-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 300px; gap: 12px; color: var(--ink-muted);
+}
+.spin {
+  width: 34px; height: 34px;
+  border: 3px solid var(--border); border-top-color: var(--rose);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── ACTION BAR (above payslip) ──────────────────────────── */
+.action-bar {
+  display: flex; gap: 7px; flex-wrap: wrap;
+  margin-bottom: 16px; align-items: center;
+}
+.act-btn {
+  padding: 10px 16px; border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--card); color: var(--ink-soft);
+  font-family: 'Sarabun', sans-serif;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.act-btn:active { transform: scale(0.97); }
+.act-btn.primary { background: linear-gradient(135deg, var(--rose), var(--rose-deep)); color: #fff; border-color: transparent; box-shadow: 0 4px 14px rgba(212,83,126,0.3); }
+.act-btn.blue    { background: linear-gradient(135deg, #185FA5, #0C447C); color: #fff; border-color: transparent; }
+.act-btn.teal    { background: linear-gradient(135deg, var(--teal), #085041); color: #fff; border-color: transparent; }
+.act-btn.amber   { background: linear-gradient(135deg, var(--amber), #854F0B); color: #fff; border-color: transparent; }
+.spacer { flex: 1; }
+
+/* ── PAYSLIP DOCUMENT ────────────────────────────────────── */
+.payslip-wrap {
+  background: var(--surface-2); border-radius: 18px; padding: 18px;
+}
+#payslip-doc {
+  background: #fff; border-radius: 16px;
+  border: 1.5px solid rgba(0,0,0,0.09);
+  overflow: hidden; box-shadow: var(--shadow-lg);
+  max-width: 700px; margin: 0 auto;
+}
+
+/* Slip Header */
+.slip-hd {
+  background: linear-gradient(135deg, #1A0A12, #3D2D4A);
+  padding: 22px 26px 18px; position: relative; overflow: hidden;
+}
+.slip-hd::before {
+  content: ''; position: absolute;
+  top: -50px; right: -50px;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: rgba(212,83,126,0.13);
+}
+.slip-hd::after {
+  content: ''; position: absolute;
+  bottom: -30px; left: 40px;
+  width: 120px; height: 120px; border-radius: 50%;
+  background: rgba(83,74,183,0.10);
+}
+.slip-hd-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  position: relative; z-index: 1;
+}
+.slip-brand { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 900; color: #fff; line-height: 1; }
+.slip-brand span { color: #F472A0; }
+.slip-brand-sub { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 3px; }
+.slip-doc-info { text-align: right; }
+.slip-doc-lbl { font-size: 10px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 3px; }
+.slip-doc-no { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; color: #fff; }
+.slip-period-badge {
+  display: inline-block; background: rgba(212,83,126,0.28);
+  border: 1px solid rgba(212,83,126,0.5); color: #F4C0D1;
+  border-radius: 7px; padding: 2px 9px; font-size: 10px; font-weight: 700; margin-top: 4px;
+}
+.slip-staff-row {
+  display: flex; align-items: center; gap: 13px;
+  position: relative; z-index: 1; margin-top: 15px;
+  padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.1);
+}
+.slip-avatar {
+  width: 46px; height: 46px; border-radius: 13px;
+  background: linear-gradient(135deg, var(--rose), var(--purple));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 21px; flex-shrink: 0;
+}
+.slip-staff-name { font-size: 19px; font-weight: 700; color: #fff; line-height: 1; }
+.slip-staff-pos { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 3px; }
+.slip-staff-meta-wrap { margin-left: auto; text-align: right; }
+.slip-meta-lbl { font-size: 10px; color: rgba(255,255,255,0.35); margin-bottom: 2px; }
+.slip-meta-val { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.80); }
+
+/* Slip Body */
+.slip-body { padding: 22px 26px; background: #fff; }
+
+/* KPI Strip */
+.slip-kpi-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; margin-bottom: 22px;
+}
+.slip-kpi {
+  background: #fafaf8; border-radius: 11px; padding: 13px;
+  text-align: center; border: 1px solid rgba(0,0,0,0.05);
+}
+.slip-kpi-lbl {
+  font-size: 9px; font-weight: 700; color: #8A7090;
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+}
+.slip-kpi-val { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; line-height: 1; }
+.slip-kpi-sub { font-size: 9px; color: #8A7090; margin-top: 3px; }
+
+/* Table Section */
+.slip-tbl-section { margin-bottom: 18px; }
+.slip-tbl-title {
+  font-size: 10px; font-weight: 700; color: #8A7090;
+  text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px;
+  display: flex; align-items: center; gap: 7px;
+}
+.slip-tbl-title::after { content: ''; flex: 1; height: 1px; background: rgba(212,83,126,0.12); }
+.slip-tbl {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+}
+.slip-tbl th {
+  background: #1A0A12; color: #fff;
+  padding: 7px 10px; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.5px; text-align: left;
+}
+.slip-tbl th:last-child { text-align: right; }
+.slip-tbl th:nth-child(n+2):not(:last-child) { text-align: center; }
+.slip-tbl td {
+  padding: 8px 10px; border-bottom: 1px solid rgba(212,83,126,0.08);
+  vertical-align: middle; color: #3D2D4A;
+}
+.slip-tbl td:last-child { text-align: right; font-weight: 700; }
+.slip-tbl td:nth-child(n+2):not(:last-child) { text-align: center; color: #8A7090; }
+.slip-tbl tr:nth-child(even) td { background: rgba(212,83,126,0.025); }
+.slip-tbl tr:last-child td { border-bottom: none; }
+.svc-badge {
+  display: inline-block; font-size: 10px; padding: 2px 8px;
+  border-radius: 20px; font-weight: 700;
+}
+.badge-nail { background: rgba(212,83,126,0.12); color: #B8365F; }
+.badge-lash { background: rgba(83,74,183,0.12); color: #3A32A0; }
+.badge-spa  { background: rgba(15,110,86,0.12);  color: #0A5C3A; }
+.badge-wax  { background: rgba(186,117,23,0.12); color: #854F0B; }
+
+/* Summary Box */
+.slip-summary {
+  background: linear-gradient(135deg, #1A0A12, #3D2D4A);
+  border-radius: 14px; padding: 18px 20px; margin-bottom: 20px;
+}
+.slip-sum-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 7px; font-size: 13px;
+}
+.slip-sum-row .lbl { color: rgba(255,255,255,0.55); }
+.slip-sum-row .val { font-weight: 700; color: rgba(255,255,255,0.90); }
+.slip-sum-divider { height: 1px; background: rgba(255,255,255,0.12); margin: 10px 0; }
+.slip-sum-total-row {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.slip-sum-total-row .lbl { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.65); }
+.slip-sum-total-row .val { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; color: #2DCB8E; }
+
+/* Mini bar (inside summary) */
+.mini-bar-row { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+.mini-bar-lbl { font-size: 9px; color: rgba(255,255,255,0.45); width: 68px; flex-shrink: 0; }
+.mini-bar-bg { flex: 1; height: 5px; background: rgba(255,255,255,0.10); border-radius: 99px; overflow: hidden; }
+.mini-bar-fill { height: 5px; border-radius: 99px; }
+.mini-bar-val { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.65); min-width: 65px; text-align: right; }
+
+/* Breakdown bars */
+.breakdown-item { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
+.breakdown-name { font-size: 11px; color: #8A7090; width: 110px; flex-shrink: 0; }
+.breakdown-bar-bg { flex: 1; height: 7px; background: #f0e8f5; border-radius: 99px; overflow: hidden; }
+.breakdown-bar-fill { height: 7px; border-radius: 99px; }
+.breakdown-val { font-size: 12px; font-weight: 700; color: #3D2D4A; min-width: 78px; text-align: right; }
+
+/* Trend mini-chart */
+.trend-wrap { display: flex; align-items: flex-end; gap: 3px; height: 36px; margin: 6px 0 2px; }
+.trend-bar { flex: 1; border-radius: 3px 3px 1px 1px; min-height: 3px; transition: height 0.4s ease; }
+.trend-lbl { font-size: 8px; color: rgba(255,255,255,0.4); text-align: center; margin-top: 2px; }
+
+/* Slip Footer */
+.slip-footer {
+  border-top: 1.5px solid rgba(212,83,126,0.12);
+  padding-top: 16px;
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+}
+.sign-block { text-align: center; min-width: 120px; }
+.sign-line { border-bottom: 1px solid #8A7090; height: 34px; margin-bottom: 5px; }
+.sign-lbl { font-size: 10px; color: #8A7090; }
+.slip-notice {
+  flex: 1; text-align: center;
+  font-size: 10px; color: #8A7090; line-height: 1.6;
+}
+
+/* ── ALL SUMMARY VIEW ────────────────────────────────────── */
+.all-summary-card {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 18px; overflow: hidden; margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.all-summary-hd {
+  background: linear-gradient(135deg, var(--ink), var(--ink-soft));
+  padding: 15px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+[data-theme="dark"] .all-summary-hd { background: linear-gradient(135deg, #0D1117, #1F2937); }
+.all-hd-title { font-size: 14px; font-weight: 700; color: #fff; }
+.all-hd-total { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #2DCB8E; }
+.all-breakdown-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1.5px solid var(--surface-2);
+}
+.all-breakdown-cell {
+  padding: 13px; text-align: center; border-right: 1px solid var(--border);
+}
+.all-breakdown-cell:last-child { border-right: none; }
+.all-bd-lbl { font-size: 9px; font-weight: 700; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.all-bd-val { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; }
+.all-staff-row {
+  display: flex; align-items: center; gap: 11px; padding: 13px 18px;
+  border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.12s;
+  cursor: pointer;
+}
+.all-staff-row:last-child { border-bottom: none; }
+.all-staff-row:active { background: var(--surface-2); }
+.all-rank { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; width: 22px; text-align: center; flex-shrink: 0; color: var(--border); }
+.rank-g { color: var(--gold); }
+.rank-s { color: #A0A0B0; }
+.rank-b { color: #C08A60; }
+.all-emo-wrap { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.all-staff-info { flex: 1; min-width: 0; }
+.all-staff-name { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+.all-staff-detail { font-size: 11px; color: var(--ink-muted); }
+.all-mini-bars { display: flex; gap: 2px; margin-top: 4px; }
+.all-mini-bar { height: 4px; border-radius: 2px; }
+.all-nums { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.all-gross { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--teal); }
+.all-detail { font-size: 10px; color: var(--ink-muted); }
+.view-slip-btn {
+  padding: 6px 11px; border-radius: 8px; flex-shrink: 0;
+  border: 1.5px solid var(--border); background: var(--surface-2);
+  font-family: 'Sarabun', sans-serif; font-size: 11px; font-weight: 700;
+  color: var(--ink-muted); cursor: pointer; transition: all 0.15s;
+}
+.view-slip-btn:hover { background: var(--rose-pale); border-color: var(--rose); color: var(--rose-deep); }
+.all-grand-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  background: rgba(212,83,126,0.04); border-top: 2px solid rgba(212,83,126,0.18);
+}
+.all-grand-lbl { font-size: 14px; font-weight: 700; color: var(--ink); }
+.all-grand-val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; color: var(--teal); }
+
+/* Grand KPI banner */
+.grand-kpi-banner {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 10px; margin-bottom: 14px;
+}
+.grand-kpi-card {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 14px 16px;
+}
+.grand-kpi-lbl { font-size: 10px; font-weight: 700; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
+.grand-kpi-val { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
+.grand-kpi-sub { font-size: 11px; color: var(--ink-muted); margin-top: 2px; }
+
+/* ── PRINT STYLES ─────────────────────────────────────────── */
+@media print {
+  body { background: #fff !important; }
+  .topbar, .sidebar, .action-bar, .no-print { display: none !important; }
+  .layout { grid-template-columns: 1fr !important; }
+  .content-area { padding: 0 !important; }
+  .payslip-wrap { background: transparent !important; padding: 0 !important; }
+  #payslip-doc {
+    border: none !important; box-shadow: none !important;
+    border-radius: 0 !important; max-width: 100% !important;
+  }
+  .slip-hd { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .slip-summary { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .slip-tbl th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .all-summary-hd { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ── TOAST ─────────────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 22px; left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--ink); color: #fff;
+  padding: 10px 22px; border-radius: 11px;
+  font-size: 12px; font-weight: 600;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s; z-index: 9999;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── MOBILE ────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .grand-kpi-banner { grid-template-columns: 1fr 1fr; }
+  .slip-kpi-row { grid-template-columns: repeat(3, 1fr); gap: 7px; }
+  .slip-kpi-val { font-size: 15px; }
+  .all-breakdown-grid { grid-template-columns: repeat(3, 1fr); }
+  .slip-footer { flex-wrap: wrap; }
+  .action-bar { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo-wrap">
+    <div class="logo-icon">💅</div>
+    <div class="logo-txt">Nail <span>Kloset</span></div>
+    <span class="logo-sub">— ระบบสลิปเงินเดือน v2</span>
+  </div>
+  <div class="topbar-actions">
+    <button class="dark-toggle" id="dark-toggle" title="สลับโหมด">🌙</button>
+    <button class="topbar-btn" id="print-top-btn" onclick="printCurrentSlip()" style="display:none;">🖨 พิมพ์สลิปนี้</button>
+    <button class="topbar-btn primary" onclick="showAllSummary()">📋 ทุกคน</button>
+    <button class="topbar-btn" onclick="window.close()" style="font-size:11px;">✕ ปิด</button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="section-hd">📅 เดือน</div>
+    <div class="month-picker">
+      <button class="month-nav" id="prev-month">‹</button>
+      <div class="month-lbl" id="month-display">กำลังโหลด...</div>
+      <button class="month-nav" id="next-month">›</button>
+    </div>
+
+    <div class="section-hd">⚙️ ตั้งค่า</div>
+    <div class="cfg-card">
+      <div class="cfg-card-title">💰 เงินเดือนและค่าคอม</div>
+      <div class="cfg-row">
+        <div class="cfg-label">เงินเดือนฐาน/คน</div>
+        <div class="cfg-input-wrap">
+          <span class="cfg-unit">฿</span>
+          <input class="cfg-input" type="number" id="cfg-base" value="15000" min="0" step="500">
+        </div>
+      </div>
+      <div class="cfg-row">
+        <div class="cfg-label">ค่าคอม ทำเล็บ</div>
+        <div class="cfg-input-wrap">
+          <input class="cfg-input" type="number" id="cfg-nail" value="10" min="0" max="100" style="width:52px;">
+          <span class="cfg-unit">%</span>
+        </div>
+      </div>
+      <div class="cfg-row">
+        <div class="cfg-label">ค่าคอม ต่อขนตา</div>
+        <div class="cfg-input-wrap">
+          <input class="cfg-input" type="number" id="cfg-lash" value="15" min="0" max="100" style="width:52px;">
+          <span class="cfg-unit">%</span>
+        </div>
+      </div>
+      <div class="cfg-row">
+        <div class="cfg-label">ค่าคอม สปามือ/เท้า</div>
+        <div class="cfg-input-wrap">
+          <input class="cfg-input" type="number" id="cfg-spa" value="10" min="0" max="100" style="width:52px;">
+          <span class="cfg-unit">%</span>
+        </div>
+      </div>
+      <div class="cfg-row">
+        <div class="cfg-label">ค่าคอม แว็กขน</div>
+        <div class="cfg-input-wrap">
+          <input class="cfg-input" type="number" id="cfg-wax" value="10" min="0" max="100" style="width:52px;">
+          <span class="cfg-unit">%</span>
+        </div>
+      </div>
+      <div class="cfg-row">
+        <div class="cfg-label">ค่าคอมขายเมม</div>
+        <div class="cfg-input-wrap">
+          <input class="cfg-input" type="number" id="cfg-mem" value="1" min="0" max="100" step="0.5" style="width:52px;">
+          <span class="cfg-unit">%</span>
+        </div>
+      </div>
+      <button class="cfg-apply-btn" onclick="applyConfig()">✅ ใช้ค่านี้</button>
+    </div>
+
+    <div class="section-hd">👥 พนักงาน</div>
+    <div id="staff-list-sidebar">
+      <div class="loading-state" style="min-height:100px;"><div class="spin"></div></div>
+    </div>
+
+    <div style="margin-top:10px;">
+      <button class="sidebar-action-btn btn-rose" onclick="showAllSummary()">📋 สรุปสลิปทุกคน</button>
+      <button class="sidebar-action-btn btn-blue" onclick="printAll()">🖨 พิมพ์สลิปทุกคน</button>
+      <button class="sidebar-action-btn btn-teal" onclick="exportExcel()">📊 Export Excel</button>
+      <button class="sidebar-action-btn btn-amber" onclick="exportSummaryReport()">📄 รายงาน PDF</button>
+    </div>
+
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="content-area" id="content-area">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-ico">💸</div>
+      <div class="empty-txt">เลือกพนักงานเพื่อดูสลิปเงินเดือน</div>
+      <div class="empty-sub">หรือกด "สรุปสลิปทุกคน" ด้านซ้ายค่ะ</div>
+    </div>
+  </main>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   NAIL KLOSET PAYSLIP v2 — JavaScript
+═══════════════════════════════════════════════════════ */
+
+// ── Config ─────────────────────────────────────────────
+const GAS_URL = (function(){
+  const p = new URLSearchParams(window.location.search);
+  return p.get('gasUrl') || 'https://script.google.com/macros/s/AKfycbzrZt0orG7_m3Lp9IxQsydBmhSwji_ks456bjKvPbO747-S8mCGQHVrsyqEJHKYjcdd/exec';
+})();
+
+const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const EMO = ['🌸','💋','✨','🌹','💄','🦋','🌺','💝'];
+const COL = ['#D4537E','#534AB7','#0F6E56','#BA7517','#2DCB8E','#185FA5'];
+const SVC_MAP = {'ทำเล็บ':'nail','ต่อขนตา':'lash','สปามือ/เท้า':'spa','แว็กขน':'wax'};
+const SVC_LABEL = {'ทำเล็บ':'🌸 ทำเล็บ','ต่อขนตา':'✨ ต่อขนตา','สปามือ/เท้า':'💆 สปามือ/เท้า','แว็กขน':'🪮 แว็กขน'};
+const MEMBER_SVCS = new Set(['เติมเงินสมาชิก','เปิดเมมเบอร์ใหม่']);
+
+let now = new Date();
+let selY = now.getFullYear(), selM = now.getMonth();
+let ALL = [], archiveSheetsByKey = {};
+let COMM = { 'ทำเล็บ': 0.10, 'ต่อขนตา': 0.15, 'สปามือ/เท้า': 0.10, 'แว็กขน': 0.10 };
+let MEM_COMM = 0.01, BASE_SALARY = 15000;
+let currentStaff = null, staffDataMap = {}, memSummary = {};
+
+function commRate(svc){ return COMM[svc] || 0.10; }
+function isSvc(r){ return !MEMBER_SVCS.has(r.service); }
+function isMem(r){ return MEMBER_SVCS.has(r.service); }
+function fmt(v){ return Math.round(v).toLocaleString('th-TH'); }
+function fmtDec(v){ return v.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+// ── Toast ───────────────────────────────────────────────
+function showToast(msg, isErr){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isErr ? '#c0392b' : '#1A0A12';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Dark Mode ───────────────────────────────────────────
+(function initDark(){
+  const html = document.documentElement;
+  const btn  = document.getElementById('dark-toggle');
+  const saved = localStorage.getItem('nk_theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  let isDark = saved ? (saved === 'dark') : prefersDark;
+
+  function apply(dark){
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    btn.textContent = dark ? '☀️' : '🌙';
+    localStorage.setItem('nk_theme', dark ? 'dark' : 'light');
+    isDark = dark;
+  }
+  apply(isDark);
+  btn.addEventListener('click', () => apply(!isDark));
+})();
+
+// ── Month Nav ───────────────────────────────────────────
+function updateMonthDisplay(){
+  document.getElementById('month-display').textContent = TH_MONTHS[selM] + ' ' + (selY + 543);
+  const nx = document.getElementById('next-month');
+  const isCur = selY === now.getFullYear() && selM === now.getMonth();
+  nx.disabled = isCur;
+  nx.style.opacity = isCur ? '0.3' : '1';
+}
+
+document.getElementById('prev-month').onclick = () => {
+  selM--; if(selM < 0){ selM = 11; selY--; }
+  updateMonthDisplay(); loadData();
+};
+document.getElementById('next-month').onclick = () => {
+  selM++; if(selM > 11){ selM = 0; selY++; }
+  updateMonthDisplay(); loadData();
+};
+
+// ── Apply Config ────────────────────────────────────────
+function applyConfig(){
+  BASE_SALARY         = parseFloat(document.getElementById('cfg-base').value) || 15000;
+  COMM['ทำเล็บ']       = (parseFloat(document.getElementById('cfg-nail').value) || 10) / 100;
+  COMM['ต่อขนตา']      = (parseFloat(document.getElementById('cfg-lash').value) || 15) / 100;
+  COMM['สปามือ/เท้า']  = (parseFloat(document.getElementById('cfg-spa').value) || 10) / 100;
+  COMM['แว็กขน']       = (parseFloat(document.getElementById('cfg-wax').value) || 10) / 100;
+  MEM_COMM            = (parseFloat(document.getElementById('cfg-mem').value)  || 1)  / 100;
+  buildStaffData();
+  renderSidebar();
+  if(currentStaff) showPayslip(currentStaff);
+  else showAllSummary();
+  showToast('✅ อัปเดตค่าตั้งค่าแล้วค่ะ');
+}
+
+// ── Sync config from parent (if opened via window.open) ─
+function syncConfigFromParent(){
+  try {
+    if(window.opener && window.opener._NK_COMM){
+      const cfg = window.opener._NK_COMM;
+      if(cfg.nail)       document.getElementById('cfg-nail').value  = (cfg.nail * 100).toFixed(0);
+      if(cfg.lash)       document.getElementById('cfg-lash').value  = (cfg.lash * 100).toFixed(0);
+      if(cfg.spa)        document.getElementById('cfg-spa').value   = (cfg.spa * 100).toFixed(0);
+      if(cfg.wax)        document.getElementById('cfg-wax').value   = (cfg.wax * 100).toFixed(0);
+      if(cfg.mem)        document.getElementById('cfg-mem').value   = (cfg.mem * 100).toFixed(1);
+      if(cfg.baseSalary) document.getElementById('cfg-base').value  = cfg.baseSalary;
+      applyConfig();
+    }
+  } catch(e){}
+}
+
+// ── Load Data ───────────────────────────────────────────
+async function loadData(){
+  document.getElementById('staff-list-sidebar').innerHTML =
+    '<div class="loading-state" style="min-height:80px;"><div class="spin"></div></div>';
+  currentStaff = null;
+  document.getElementById('print-top-btn').style.display = 'none';
+  document.getElementById('content-area').innerHTML =
+    '<div class="loading-state"><div class="spin"></div><span style="font-size:13px;color:var(--ink-muted)">กำลังโหลดข้อมูล...</span></div>';
+
+  try {
+    const isCurrent = selY === now.getFullYear() && selM === now.getMonth();
+    let sheetName = 'รายการ';
+
+    if(!isCurrent){
+      try{
+        const archRes = await fetch(GAS_URL+'?action=getArchivedMonths',{cache:'no-cache'});
+        const archJson = await archRes.json();
+        if(Array.isArray(archJson)){
+          archiveSheetsByKey = {};
+          archJson.forEach(a => {
+            const key = a.yearMonth || _parseArchiveKey(a.name);
+            if(key) archiveSheetsByKey[key] = a.name;
+          });
+          const key = selY + '-' + String(selM + 1).padStart(2, '0');
+          if(archiveSheetsByKey[key]) sheetName = archiveSheetsByKey[key];
+        }
+      }catch(e){}
+    }
+
+    const res  = await fetch(`${GAS_URL}?action=getDashboardDataFromSheet&sheetName=${encodeURIComponent(sheetName)}`,{cache:'no-cache'});
+    const json = await res.json();
+    ALL = ((json.records || [])).map(r => ({
+      date:      new Date(r.timestamp || r.date),
+      staffName: r.staffName || '-',
+      service:   r.service   || '-',
+      price:     Number(r.price) || 0,
+      payment:   r.payment  || 'Cash',
+      phone:     r.phone    || '-'
+    })).filter(r => !isNaN(r.date) && r.price > 0);
+
+    buildStaffData();
+    renderSidebar();
+    showAllSummary();
+  } catch(e){
+    showToast('❌ โหลดข้อมูลไม่ได้: ' + e.message, true);
+    document.getElementById('content-area').innerHTML =
+      `<div class="empty-state"><div class="empty-ico">⚠️</div>
+       <div class="empty-txt">โหลดไม่สำเร็จ</div>
+       <div class="empty-sub">${e.message}</div>
+       <button onclick="loadData()" style="margin-top:12px;padding:10px 22px;border-radius:10px;border:none;background:var(--rose);color:#fff;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">🔄 ลองใหม่</button>
+      </div>`;
+  }
+}
+
+function _parseArchiveKey(name){
+  const thM = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  for(let m=0;m<thM.length;m++){
+    if(name.indexOf(thM[m]) !== -1){
+      const ym = name.match(/(\d{4})/);
+      if(ym){ const ce = parseInt(ym[1]) > 2500 ? parseInt(ym[1])-543 : parseInt(ym[1]); return ce+'-'+String(m+1).padStart(2,'0'); }
+    }
+  }
+  return null;
+}
+
+// ── Build Staff Data ────────────────────────────────────
+function buildStaffData(){
+  const start = new Date(selY, selM, 1, 0,0,0);
+  const end   = new Date(selY, selM+1, 0, 23,59,59);
+  const recs  = ALL.filter(r => r.date >= start && r.date <= end);
+  const svcR  = recs.filter(isSvc);
+  const memR  = recs.filter(isMem);
+  const memTotal = memR.reduce((s,r) => s+r.price, 0);
+  const memComm  = Math.round(memTotal * MEM_COMM);
+  memSummary = { total: memTotal, comm: memComm };
+  staffDataMap = {};
+
+  svcR.forEach(r => {
+    if(!staffDataMap[r.staffName]) staffDataMap[r.staffName] = {
+      name: r.staffName, records: [], bySvc: {},
+      commFloat: 0, revenue: 0, count: 0,
+      payments: { Cash:0, Member:0, Transfer:0, Credit:0 }
+    };
+    const d  = staffDataMap[r.staffName];
+    const cf = r.price * commRate(r.service);
+    d.records.push(r);
+    d.commFloat += cf;
+    d.revenue   += r.price;
+    d.count++;
+    if(!d.bySvc[r.service]) d.bySvc[r.service] = { commFloat:0, revenue:0, count:0, rate: commRate(r.service) };
+    d.bySvc[r.service].commFloat += cf;
+    d.bySvc[r.service].revenue   += r.price;
+    d.bySvc[r.service].count++;
+    if(d.payments[r.payment] !== undefined) d.payments[r.payment] += r.price;
+    else d.payments['Cash'] += r.price;
+  });
+
+  const staffCount = Object.keys(staffDataMap).length || 1;
+  const commMemPerStaff = Math.round(memComm / staffCount);
+  Object.values(staffDataMap).forEach(d => {
+    d.commSvc  = Math.round(d.commFloat);
+    d.commMem  = commMemPerStaff;
+    d.salary   = BASE_SALARY;
+    d.total    = d.salary + d.commSvc + d.commMem;
+    d.avgPerJob = d.count > 0 ? Math.round(d.revenue / d.count) : 0;
+  });
+}
+
+// ── Render Sidebar ──────────────────────────────────────
+function renderSidebar(){
+  const sorted = Object.values(staffDataMap).sort((a,b) => b.total - a.total);
+  const sb = document.getElementById('staff-list-sidebar');
+  if(!sorted.length){
+    sb.innerHTML = '<div style="text-align:center;padding:18px;font-size:13px;color:var(--ink-muted);">ไม่มีข้อมูลในเดือนนี้</div>';
+    return;
+  }
+  sb.innerHTML = sorted.map((d,i) => `
+    <div class="staff-item" id="si-${i}" onclick="showPayslip('${d.name}')">
+      <div class="staff-emo" style="background:${COL[i%COL.length]}22;">${EMO[i%EMO.length]}</div>
+      <div class="staff-info">
+        <div class="staff-name-lbl">${d.name}</div>
+        <div class="staff-meta-lbl">${d.count} รายการ · คอม ฿${fmt(d.commSvc)}</div>
+      </div>
+      <div class="staff-total-lbl">฿${fmt(d.total)}</div>
+    </div>
+  `).join('');
+}
+
+// ── Show Payslip ────────────────────────────────────────
+function showPayslip(name){
+  currentStaff = name;
+  const d = staffDataMap[name];
+  if(!d){ showToast('ไม่พบข้อมูลพนักงาน', true); return; }
+
+  document.querySelectorAll('.staff-item').forEach(el => el.classList.remove('active'));
+  const sorted = Object.values(staffDataMap).sort((a,b) => b.total - a.total);
+  const idx = sorted.findIndex(x => x.name === name);
+  if(idx >= 0) document.getElementById('si-'+idx)?.classList.add('active');
+  document.getElementById('print-top-btn').style.display = 'block';
+
+  const now2 = new Date();
+  const docNo = `NK-PS-${selY}${String(selM+1).padStart(2,'0')}-${String(idx+1).padStart(2,'0')}`;
+  const periodLabel = TH_MONTHS[selM] + ' ' + (selY + 543);
+  const createdDate = `${now2.getDate()} ${TH_MONTHS[now2.getMonth()]} ${now2.getFullYear() + 543}`;
+  const maxBreak = Math.max(d.salary, d.commSvc, d.commMem, 1);
+
+  // Service rows
+  const svcRows = Object.entries(d.bySvc)
+    .sort((a,b) => b[1].revenue - a[1].revenue)
+    .map(([svc, sv]) => {
+      const cls = 'badge-' + (SVC_MAP[svc] || 'nail');
+      return `<tr>
+        <td><span class="svc-badge ${cls}">${SVC_LABEL[svc] || svc}</span></td>
+        <td>${sv.count}</td>
+        <td>฿${fmt(sv.revenue)}</td>
+        <td>${(sv.rate * 100).toFixed(0)}%</td>
+        <td style="color:#0F6E56;">฿${fmt(sv.commFloat)}</td>
+      </tr>`;
+    }).join('');
+
+  // Payment breakdown
+  const payRows = [
+    { label: '💵 เงินสด (Cash)',      val: d.payments.Cash     || 0, col: '#0F6E56' },
+    { label: '📲 โอน (Transfer)',      val: d.payments.Transfer || 0, col: '#185FA5' },
+    { label: '💳 บัตรเครดิต',          val: d.payments.Credit   || 0, col: '#534AB7' },
+    { label: '🎫 ตัดเมมเบอร์',         val: d.payments.Member   || 0, col: '#D4537E' },
+  ].filter(p => p.val > 0);
+  const maxPay = Math.max(...payRows.map(p => p.val), 1);
+
+  // Recent records (last 15)
+  const recentRows = d.records.slice(0, 15).map(r => {
+    const hh = r.date.getHours().toString().padStart(2,'0');
+    const mm = r.date.getMinutes().toString().padStart(2,'0');
+    const dd = r.date.getDate() + '/' + (r.date.getMonth()+1);
+    const payLabel = { Cash:'💵 สด', Transfer:'📲 โอน', Credit:'💳 รูด', Member:'🎫 เมม' }[r.payment] || r.payment;
+    const cls = 'badge-' + (SVC_MAP[r.service] || 'nail');
+    return `<tr>
+      <td style="white-space:nowrap;font-size:10px;">${dd}<br><span style="color:#8A7090">${hh}:${mm}</span></td>
+      <td><span class="svc-badge ${cls}">${r.service}</span></td>
+      <td style="font-size:10px;">${payLabel}</td>
+      <td>฿${fmt(r.price)}</td>
+      <td style="color:#0F6E56;">฿${fmt(r.price * commRate(r.service))}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('content-area').innerHTML = `
+    <div class="action-bar no-print">
+      <button class="act-btn primary" onclick="printCurrentSlip()">🖨 พิมพ์สลิปนี้</button>
+      <button class="act-btn blue"    onclick="exportSinglePDF('${name}')">📄 PDF</button>
+      <button class="act-btn teal"    onclick="exportExcel()">📊 Excel ทุกคน</button>
+      <div class="spacer"></div>
+      <button class="act-btn" onclick="showAllSummary()" style="font-size:11px;">← สรุปทุกคน</button>
+    </div>
+
+    <div class="payslip-wrap">
+      <div id="payslip-doc">
+
+        <!-- HEADER -->
+        <div class="slip-hd">
+          <div class="slip-hd-top">
+            <div>
+              <div class="slip-brand">Nail <span>Kloset</span></div>
+              <div class="slip-brand-sub">the crystal ratchapruek</div>
+            </div>
+            <div class="slip-doc-info">
+              <div class="slip-doc-lbl">สลิปเงินเดือน</div>
+              <div class="slip-doc-no">${docNo}</div>
+              <div class="slip-period-badge">${periodLabel}</div>
+            </div>
+          </div>
+          <div class="slip-staff-row">
+            <div class="slip-avatar">${EMO[idx % EMO.length]}</div>
+            <div>
+              <div class="slip-staff-name">${d.name}</div>
+              <div class="slip-staff-pos">ช่างเสริมสวย — Nail Kloset</div>
+            </div>
+            <div class="slip-staff-meta-wrap">
+              <div class="slip-meta-lbl">วันที่จัดทำ</div>
+              <div class="slip-meta-val">${createdDate}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="slip-body">
+
+          <!-- KPI -->
+          <div class="slip-kpi-row">
+            <div class="slip-kpi">
+              <div class="slip-kpi-lbl">รายรับที่ทำได้</div>
+              <div class="slip-kpi-val" style="color:#B8365F;">฿${fmt(d.revenue)}</div>
+              <div class="slip-kpi-sub">${d.count} รายการ</div>
+            </div>
+            <div class="slip-kpi">
+              <div class="slip-kpi-lbl">ค่าคอมบริการ</div>
+              <div class="slip-kpi-val" style="color:#0F6E56;">฿${fmt(d.commSvc)}</div>
+              <div class="slip-kpi-sub">จากบริการทั้งหมด</div>
+            </div>
+            <div class="slip-kpi">
+              <div class="slip-kpi-lbl">ค่าคอมเมมเบอร์</div>
+              <div class="slip-kpi-val" style="color:#534AB7;">฿${fmt(d.commMem)}</div>
+              <div class="slip-kpi-sub">ยอดเมม ฿${fmt(memSummary.total)}</div>
+            </div>
+          </div>
+
+          <!-- Service Table -->
+          <div class="slip-tbl-section">
+            <div class="slip-tbl-title">แยกตามประเภทบริการ</div>
+            <table class="slip-tbl">
+              <thead>
+                <tr>
+                  <th>ประเภทบริการ</th><th>จำนวน</th><th>ยอดรวม</th><th>อัตราคอม</th><th>ค่าคอม</th>
+                </tr>
+              </thead>
+              <tbody>${svcRows || '<tr><td colspan="5" style="text-align:center;color:#8A7090;padding:14px;">ไม่มีข้อมูลบริการ</td></tr>'}</tbody>
+            </table>
+          </div>
+
+          ${payRows.length > 0 ? `
+          <!-- Payment Breakdown -->
+          <div class="slip-tbl-section">
+            <div class="slip-tbl-title">ช่องทางการชำระเงิน</div>
+            ${payRows.map(p => `
+              <div class="breakdown-item">
+                <div class="breakdown-name">${p.label}</div>
+                <div class="breakdown-bar-bg">
+                  <div class="breakdown-bar-fill" style="width:${Math.round(p.val/maxPay*100)}%;background:${p.col}"></div>
+                </div>
+                <div class="breakdown-val">฿${fmt(p.val)}</div>
+              </div>
+            `).join('')}
+          </div>` : ''}
+
+          <!-- Summary Box -->
+          <div class="slip-summary">
+            <div class="slip-sum-row">
+              <div class="lbl">💼 เงินเดือนฐาน</div>
+              <div class="val">฿${fmt(d.salary)}</div>
+            </div>
+            <div class="slip-sum-row">
+              <div class="lbl">🏅 ค่าคอมมิชชั่นบริการ</div>
+              <div class="val">฿${fmt(d.commSvc)}</div>
+            </div>
+            <div class="slip-sum-row">
+              <div class="lbl">🎫 ค่าคอมขายเมมเบอร์ (${(MEM_COMM*100).toFixed(1)}%)</div>
+              <div class="val">฿${fmt(d.commMem)}</div>
+            </div>
+            <div class="slip-sum-divider"></div>
+            <!-- Mini breakdown bars -->
+            <div style="margin:8px 0 10px;">
+              ${[
+                {label:'เงินเดือน', val:d.salary,   col:'#2DCB8E'},
+                {label:'คอมบริการ', val:d.commSvc,  col:'#F472A0'},
+                {label:'คอมเมม',   val:d.commMem,  col:'#A5A0FF'},
+              ].map(b => `
+                <div class="mini-bar-row">
+                  <div class="mini-bar-lbl">${b.label}</div>
+                  <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${Math.round(b.val/maxBreak*100)}%;background:${b.col}"></div></div>
+                  <div class="mini-bar-val">฿${fmt(b.val)}</div>
+                </div>
+              `).join('')}
+            </div>
+            <div class="slip-sum-divider"></div>
+            <div class="slip-sum-total-row">
+              <div class="lbl">💰 ยอดรวมที่ต้องจ่าย</div>
+              <div class="val">฿${fmt(d.total)}</div>
+            </div>
+          </div>
+
+          <!-- Recent Records -->
+          <div class="slip-tbl-section">
+            <div class="slip-tbl-title">รายการล่าสุด (${Math.min(d.records.length, 15)} รายการ)</div>
+            <table class="slip-tbl">
+              <thead>
+                <tr>
+                  <th>วันที่/เวลา</th>
+                  <th style="text-align:left;">บริการ</th>
+                  <th>ชำระด้วย</th>
+                  <th>ราคา</th>
+                  <th>ค่าคอม</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${recentRows}
+                ${d.records.length > 15 ? `<tr><td colspan="5" style="text-align:center;padding:8px;font-size:10px;color:#8A7090;">... และอีก ${d.records.length - 15} รายการ</td></tr>` : ''}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Footer / Signature -->
+          <div class="slip-footer">
+            <div>
+              <div style="font-size:9px;color:#8A7090;margin-bottom:3px;">ข้อมูล ณ วันที่</div>
+              <div style="font-size:11px;font-weight:700;color:#3D2D4A;">${createdDate}</div>
+              <div style="font-size:9px;color:#8A7090;margin-top:2px;">เลขที่: ${docNo}</div>
+            </div>
+            <div class="slip-notice">
+              เอกสารนี้จัดทำโดยระบบ Nail Kloset อัตโนมัติ<br>
+              หากมีข้อสงสัยกรุณาติดต่อผู้ดูแลระบบค่ะ
+            </div>
+            <div class="sign-block">
+              <div class="sign-line"></div>
+              <div class="sign-lbl">ผู้รับเงิน / ${d.name}</div>
+            </div>
+            <div class="sign-block">
+              <div class="sign-line"></div>
+              <div class="sign-lbl">ผู้จ่ายเงิน / เจ้าของร้าน</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ── Show All Summary ────────────────────────────────────
+function showAllSummary(){
+  currentStaff = null;
+  document.querySelectorAll('.staff-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('print-top-btn').style.display = 'none';
+
+  const sorted = Object.values(staffDataMap).sort((a,b) => b.total - a.total);
+  const grandTotal = sorted.reduce((s,d) => s + d.total, 0);
+  const totalSalary = sorted.reduce((s,d) => s + d.salary, 0);
+  const totalCommSvc = sorted.reduce((s,d) => s + d.commSvc, 0);
+  const totalCommMem = sorted.reduce((s,d) => s + d.commMem, 0);
+  const periodLabel = TH_MONTHS[selM] + ' ' + (selY + 543);
+  const rankCls = ['rank-g','rank-s','rank-b'];
+
+  if(!sorted.length){
+    document.getElementById('content-area').innerHTML =
+      `<div class="empty-state"><div class="empty-ico">📭</div><div class="empty-txt">ไม่มีข้อมูลพนักงาน</div><div class="empty-sub">เดือน ${periodLabel}</div></div>`;
+    return;
+  }
+
+  document.getElementById('content-area').innerHTML = `
+    <div class="action-bar no-print">
+      <button class="act-btn primary" onclick="printAll()">🖨 พิมพ์ทุกคน</button>
+      <button class="act-btn teal"    onclick="exportExcel()">📊 Export Excel</button>
+      <button class="act-btn blue"    onclick="exportSummaryReport()">📄 รายงาน PDF</button>
+    </div>
+
+    <!-- Grand KPI -->
+    <div class="grand-kpi-banner">
+      <div class="grand-kpi-card" style="border-color:rgba(45,203,142,0.3);background:rgba(45,203,142,0.04);">
+        <div class="grand-kpi-lbl">💰 ยอดรวมที่ต้องจ่าย</div>
+        <div class="grand-kpi-val" style="color:#0F6E56;">฿${fmt(grandTotal)}</div>
+        <div class="grand-kpi-sub">${sorted.length} พนักงาน · ${periodLabel}</div>
+      </div>
+      <div class="grand-kpi-card" style="border-color:rgba(212,83,126,0.25);background:rgba(212,83,126,0.04);">
+        <div class="grand-kpi-lbl">📊 ยอดเมมเบอร์เดือนนี้</div>
+        <div class="grand-kpi-val" style="color:#B8365F;">฿${fmt(memSummary.total)}</div>
+        <div class="grand-kpi-sub">คอมเมม ฿${fmt(memSummary.comm)} (${(MEM_COMM*100).toFixed(1)}%)</div>
+      </div>
+    </div>
+
+    <div class="all-summary-card">
+      <div class="all-summary-hd">
+        <div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">ยอดรวมที่ต้องจ่ายทั้งหมด</div>
+          <div class="all-hd-title">สรุปเงินเดือน ${periodLabel} · ${sorted.length} คน</div>
+        </div>
+        <div class="all-hd-total">฿${fmt(grandTotal)}</div>
+      </div>
+
+      <div class="all-breakdown-grid">
+        <div class="all-breakdown-cell">
+          <div class="all-bd-lbl">💼 เงินเดือนรวม</div>
+          <div class="all-bd-val" style="color:var(--teal);">฿${fmt(totalSalary)}</div>
+        </div>
+        <div class="all-breakdown-cell">
+          <div class="all-bd-lbl">🏅 คอมบริการรวม</div>
+          <div class="all-bd-val" style="color:var(--rose-deep);">฿${fmt(totalCommSvc)}</div>
+        </div>
+        <div class="all-breakdown-cell">
+          <div class="all-bd-lbl">🎫 คอมเมมรวม</div>
+          <div class="all-bd-val" style="color:var(--purple);">฿${fmt(totalCommMem)}</div>
+        </div>
+      </div>
+
+      ${sorted.map((d, i) => {
+        const col = COL[i % COL.length];
+        const miniG = [
+          {val:d.salary,  col:COL[2], t:'เงินเดือน'},
+          {val:d.commSvc, col:COL[0], t:'คอมบริการ'},
+          {val:d.commMem, col:COL[4], t:'คอมเมม'},
+        ].filter(b => b.val > 0).map(b =>
+          `<div class="all-mini-bar" title="${b.t}: ฿${fmt(b.val)}" style="height:4px;width:${Math.round(b.val/d.total*100)}%;background:${b.col};border-radius:2px;"></div>`
+        ).join('');
+        return `
+          <div class="all-staff-row" onclick="showPayslip('${d.name}')">
+            <div class="all-rank ${rankCls[i] || ''}">${i+1}</div>
+            <div class="all-emo-wrap" style="background:${col}18;">${EMO[i%EMO.length]}</div>
+            <div class="all-staff-info">
+              <div class="all-staff-name">${d.name}</div>
+              <div class="all-staff-detail">${d.count} รายการ · รายรับ ฿${fmt(d.revenue)} · เฉลี่ย ฿${fmt(d.avgPerJob)}/งาน</div>
+              <div class="all-mini-bars">${miniG}</div>
+            </div>
+            <div class="all-nums">
+              <div class="all-gross" style="color:${col};">฿${fmt(d.total)}</div>
+              <div class="all-detail">฿${fmt(d.salary)} + ฿${fmt(d.commSvc)} + ฿${fmt(d.commMem)}</div>
+            </div>
+            <button class="view-slip-btn" onclick="event.stopPropagation();showPayslip('${d.name}')">สลิป →</button>
+          </div>
+        `;
+      }).join('')}
+
+      <div class="all-grand-row">
+        <div class="all-grand-lbl">ยอดรวมทั้งหมด (${sorted.length} คน)</div>
+        <div class="all-grand-val">฿${fmt(grandTotal)}</div>
+      </div>
+    </div>
+  `;
+}
+
+// ── Print Functions ─────────────────────────────────────
+function printCurrentSlip(){
+  if(!currentStaff){ showToast('กรุณาเลือกพนักงานก่อนค่ะ', true); return; }
+  window.print();
+}
+
+function printAll(){
+  const sorted = Object.values(staffDataMap).sort((a,b) => b.total - a.total);
+  if(!sorted.length){ showToast('ไม่มีข้อมูลพนักงาน', true); return; }
+  const w = window.open('', '_blank');
+  if(!w){ showToast('กรุณาอนุญาต popup ค่ะ', true); return; }
+  w.document.write(buildAllSlipsHTML(sorted));
+  w.document.close();
+}
+
+function exportSinglePDF(name){
+  const d = staffDataMap[name];
+  if(!d) return;
+  const sorted = Object.values(staffDataMap).sort((a,b) => b.total - a.total);
+  const idx = sorted.findIndex(x => x.name === name);
+  const w = window.open('', '_blank');
+  if(!w){ showToast('กรุณาอนุญาต popup ค่ะ', true); return; }
+  w.document.write(buildSingleSlipHTML(d, idx));
+  w.document.close();
+}
+
+// ── Export Excel ────────────────────────────────────────
+function exportExcel(){
+  const sorted = Object.values(staffDataMap).sort((a,b) => b.total - a.total);
+  if(!sorted.length){ showToast('ไม่มีข้อมูล', true); return; }
+
+  const periodLabel = TH_MONTHS[selM] + ' ' + (selY + 543);
+  const now2 = new Date();
+
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: สรุปเงินเดือน
+  const summaryRows = [
+    ['Nail Kloset — สรุปเงินเดือนพนักงาน', '', '', '', '', '', ''],
+    ['ประจำเดือน: ' + periodLabel, '', '', '', '', '', ''],
+    ['จัดทำเมื่อ: ' + now2.getDate() + '/' + (now2.getMonth()+1) + '/' + (now2.getFullYear()+543), '', '', '', '', '', ''],
+    ['', '', '', '', '', '', ''],
+    ['ชื่อพนักงาน', 'รายการ', 'รายรับที่ทำ (฿)', 'เงินเดือนฐาน (฿)', 'ค่าคอมบริการ (฿)', 'ค่าคอมเมม (฿)', 'รวม (฿)'],
+  ];
+
+  sorted.forEach(d => {
+    summaryRows.push([d.name, d.count, d.revenue, d.salary, d.commSvc, d.commMem, d.total]);
+  });
+
+  summaryRows.push(['', '', '', '', '', '', '']);
+  summaryRows.push([
+    'รวมทั้งหมด (' + sorted.length + ' คน)',
+    sorted.reduce((s,d)=>s+d.count,0),
+    sorted.reduce((s,d)=>s+d.revenue,0),
+    sorted.reduce((s,d)=>s+d.salary,0),
+    sorted.reduce((s,d)=>s+d.commSvc,0),
+    sorted.reduce((s,d)=>s+d.commMem,0),
+    sorted.reduce((s,d)=>s+d.total,0),
+  ]);
+  summaryRows.push(['', '', '', '', '', '', '']);
+  summaryRows.push(['ยอดเมมเบอร์เดือนนี้: ฿' + fmt(memSummary.total), '', '', '', '', '', '']);
+
+  const ws1 = XLSX.utils.aoa_to_sheet(summaryRows);
+  ws1['!cols'] = [{wch:18},{wch:10},{wch:16},{wch:16},{wch:18},{wch:16},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'สรุปเงินเดือน');
+
+  // Sheet 2 per staff: รายละเอียดบริการ
+  sorted.forEach(d => {
+    const rows = [
+      ['สลิปเงินเดือน: ' + d.name, '', '', '', ''],
+      ['ประจำเดือน: ' + periodLabel, '', '', '', ''],
+      ['', '', '', '', ''],
+      ['บริการ', 'จำนวนครั้ง', 'ยอดรวม (฿)', 'อัตราคอม (%)', 'ค่าคอม (฿)'],
+    ];
+    Object.entries(d.bySvc).sort((a,b) => b[1].revenue - a[1].revenue).forEach(([svc, sv]) => {
+      rows.push([svc, sv.count, sv.revenue, (sv.rate * 100).toFixed(0), Math.round(sv.commFloat)]);
+    });
+    rows.push(['', '', '', '', '']);
+    rows.push(['เงินเดือนฐาน', '', '', '', d.salary]);
+    rows.push(['ค่าคอมบริการ', '', '', '', d.commSvc]);
+    rows.push(['ค่าคอมเมมเบอร์', '', '', '', d.commMem]);
+    rows.push(['รวมทั้งสิ้น', '', '', '', d.total]);
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:18},{wch:12},{wch:14},{wch:14},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, ws, d.name.substring(0, 28));
+  });
+
+  XLSX.writeFile(wb, 'NailKloset_เงินเดือน_' + periodLabel.replace(' ', '_') + '.xlsx');
+  showToast('✅ Export Excel สำเร็จค่ะ');
+}
+
+// ── Summary Report PDF ──────────────────────────────────
+function exportSummaryReport(){
+  const sorted = Object.values(staffDataMap).sort((a,b) => b.total - a.total);
+  if(!sorted.length){ showToast('ไม่มีข้อมูล', true); return; }
+  const w = window.open('', '_blank');
+  if(!w){ showToast('กรุณาอนุญาต popup ค่ะ', true); return; }
+  w.document.write(buildSummaryReportHTML(sorted));
+  w.document.close();
+}
+
+// ── Build Single Slip HTML ──────────────────────────────
+function buildSingleSlipHTML(d, idx, forPrint=false){
+  const periodLabel = TH_MONTHS[selM] + ' ' + (selY + 543);
+  const now2 = new Date();
+  const docNo = `NK-PS-${selY}${String(selM+1).padStart(2,'0')}-${String(idx+1).padStart(2,'0')}`;
+  const createdDate = now2.getDate() + '/' + (now2.getMonth()+1) + '/' + (now2.getFullYear()+543);
+  const maxBreak = Math.max(d.salary, d.commSvc, d.commMem, 1);
+
+  const svcRows = Object.entries(d.bySvc)
+    .sort((a,b) => b[1].revenue - a[1].revenue)
+    .map(([svc,sv]) => `<tr style="background:${Object.keys(d.bySvc).indexOf(svc)%2===0?'#fafaf8':'#fff'}">
+      <td style="padding:7px 10px;">${svc}</td>
+      <td style="padding:7px 10px;text-align:center;">${sv.count}</td>
+      <td style="padding:7px 10px;text-align:right;">฿${fmt(sv.revenue)}</td>
+      <td style="padding:7px 10px;text-align:center;">${(sv.rate*100).toFixed(0)}%</td>
+      <td style="padding:7px 10px;text-align:right;font-weight:700;color:#0F6E56;">฿${fmt(sv.commFloat)}</td>
+    </tr>`).join('');
+
+  const wrap = forPrint
+    ? '<div class="slip-page">'
+    : `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>สลิป ${d.name}</title>
+       <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+       <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Sarabun',sans-serif;background:#f5f5f0;padding:22px;}
+       .print-btn{position:fixed;bottom:20px;right:20px;background:#D4537E;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+       @media print{.print-btn{display:none!important;}body{background:#fff!important;padding:0;}}
+       </style></head><body>
+       <button class="print-btn" onclick="window.print()">🖨 พิมพ์สลิป</button>`;
+  const wrapEnd = forPrint ? '</div>' : '</body></html>';
+
+  return wrap + `
+  <div style="background:#fff;border-radius:14px;overflow:hidden;border:1.5px solid rgba(0,0,0,0.08);max-width:680px;margin:0 auto;box-shadow:0 6px 28px rgba(0,0,0,0.10);">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#1A0A12,#3D2D4A);padding:20px 24px;color:#fff;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-50px;right:-50px;width:180px;height:180px;border-radius:50%;background:rgba(212,83,126,0.12);"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;margin-bottom:14px;">
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:900;">Nail <span style="color:#F472A0;">Kloset</span></div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">the crystal ratchapruek</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:9px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;">สลิปเงินเดือน</div>
+          <div style="font-size:13px;font-weight:700;">${docNo}</div>
+          <div style="display:inline-block;background:rgba(212,83,126,0.28);border:1px solid rgba(212,83,126,0.5);color:#F4C0D1;border-radius:6px;padding:2px 8px;font-size:9px;font-weight:700;margin-top:3px;">${periodLabel}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1);position:relative;z-index:1;">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#D4537E,#534AB7);display:flex;align-items:center;justify-content:center;font-size:20px;">${EMO[idx%EMO.length]}</div>
+        <div>
+          <div style="font-size:18px;font-weight:700;">${d.name}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.45);">ช่างเสริมสวย · ${d.count} รายการ · จัดทำ ${createdDate}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:18px 22px;">
+      <!-- KPI -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;">
+        ${[
+          {lbl:'รายรับที่ทำ',    val:d.revenue, col:'#B8365F'},
+          {lbl:'ค่าคอมบริการ',   val:d.commSvc, col:'#0F6E56'},
+          {lbl:'ค่าคอมเมมเบอร์', val:d.commMem, col:'#534AB7'},
+        ].map(k => `
+          <div style="background:#f9f5f8;border-radius:10px;padding:12px;text-align:center;">
+            <div style="font-size:9px;font-weight:700;color:#8A7090;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">${k.lbl}</div>
+            <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:${k.col};">฿${fmt(k.val)}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- Service Table -->
+      <div style="font-size:10px;font-weight:700;color:#8A7090;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid rgba(212,83,126,0.10);">แยกตามประเภทบริการ</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px;">
+        <thead>
+          <tr style="background:#1A0A12;color:#fff;">
+            <th style="padding:6px 10px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;">บริการ</th>
+            <th style="padding:6px 10px;text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;">ครั้ง</th>
+            <th style="padding:6px 10px;text-align:right;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;">ยอดรวม</th>
+            <th style="padding:6px 10px;text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;">อัตรา</th>
+            <th style="padding:6px 10px;text-align:right;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;">ค่าคอม</th>
+          </tr>
+        </thead>
+        <tbody>${svcRows || '<tr><td colspan="5" style="text-align:center;padding:12px;color:#8A7090;">ไม่มีข้อมูลบริการ</td></tr>'}</tbody>
+      </table>
+
+      <!-- Summary -->
+      <div style="background:linear-gradient(135deg,#1A0A12,#3D2D4A);border-radius:12px;padding:16px 18px;color:#fff;margin-bottom:18px;">
+        ${[
+          {lbl:'💼 เงินเดือนฐาน', val:d.salary},
+          {lbl:'🏅 ค่าคอมมิชชั่นบริการ', val:d.commSvc},
+          {lbl:'🎫 ค่าคอมขายเมมเบอร์', val:d.commMem},
+        ].map(r => `
+          <div style="display:flex;justify-content:space-between;margin-bottom:7px;font-size:12px;">
+            <span style="color:rgba(255,255,255,0.55);">${r.lbl}</span>
+            <span style="font-weight:700;">฿${fmt(r.val)}</span>
+          </div>
+        `).join('')}
+        <div style="height:1px;background:rgba(255,255,255,0.12);margin:10px 0;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.65);">💰 ยอดรวมที่ต้องจ่าย</span>
+          <span style="font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:#2DCB8E;">฿${fmt(d.total)}</span>
+        </div>
+      </div>
+
+      <!-- Signature -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:14px;border-top:1.5px solid rgba(212,83,126,0.10);">
+        <div style="font-size:9px;color:#8A7090;">เลขที่ ${docNo} · ${createdDate}</div>
+        <div style="display:flex;gap:22px;">
+          <div style="text-align:center;min-width:110px;">
+            <div style="border-bottom:1px solid #8A7090;height:32px;margin-bottom:4px;"></div>
+            <div style="font-size:9px;color:#8A7090;">ผู้รับ / ${d.name}</div>
+          </div>
+          <div style="text-align:center;min-width:110px;">
+            <div style="border-bottom:1px solid #8A7090;height:32px;margin-bottom:4px;"></div>
+            <div style="font-size:9px;color:#8A7090;">ผู้จ่าย / เจ้าของร้าน</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>` + wrapEnd;
+}
+
+// ── Build All Slips HTML ────────────────────────────────
+function buildAllSlipsHTML(staffList){
+  const sheets = staffList.map((d,i) => buildSingleSlipHTML(d, i, true)).join('');
+  return `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+  <title>สลิปเงินเดือน ${TH_MONTHS[selM]} ${selY+543}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+  <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Sarabun',sans-serif;background:#f5f5f0;}
+  .slip-page{page-break-after:always;padding:22px;max-width:720px;margin:0 auto;}
+  .slip-page:last-child{page-break-after:avoid;}
+  .print-btn{position:fixed;bottom:20px;right:20px;background:#D4537E;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;z-index:100;}
+  @media print{.print-btn{display:none!important;}body{background:#fff!important;}.slip-page{padding:14px;}}
+  </style></head><body>
+  <button class="print-btn" onclick="window.print()">🖨 พิมพ์ทั้งหมด</button>
+  ${sheets}</body></html>`;
+}
+
+// ── Summary Report HTML ─────────────────────────────────
+function buildSummaryReportHTML(staffList){
+  const periodLabel = TH_MONTHS[selM] + ' ' + (selY + 543);
+  const grandTotal  = staffList.reduce((s,d) => s + d.total, 0);
+  const now2 = new Date();
+  const rows = staffList.map((d,i) =>
+    `<tr style="${i%2===0?'background:#fafaf8':''}">
+      <td style="padding:8px 12px;">${d.name}</td>
+      <td style="padding:8px 12px;text-align:center;">${d.count}</td>
+      <td style="padding:8px 12px;text-align:right;">฿${fmt(d.revenue)}</td>
+      <td style="padding:8px 12px;text-align:right;">฿${fmt(d.salary)}</td>
+      <td style="padding:8px 12px;text-align:right;">฿${fmt(d.commSvc)}</td>
+      <td style="padding:8px 12px;text-align:right;">฿${fmt(d.commMem)}</td>
+      <td style="padding:8px 12px;text-align:right;font-weight:700;color:#0F6E56;">฿${fmt(d.total)}</td>
+    </tr>`
+  ).join('');
+
+  return `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+  <title>รายงานเงินเดือน ${periodLabel}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+  <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Sarabun',sans-serif;padding:28px;background:#fff;}
+  .print-btn{position:fixed;bottom:20px;right:20px;background:#D4537E;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+  @media print{.print-btn{display:none!important;}}
+  </style></head><body>
+  <button class="print-btn" onclick="window.print()">🖨 พิมพ์รายงาน</button>
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid #1A0A12;">
+    <div>
+      <div style="font-family:'Playfair Display',serif;font-size:26px;font-weight:900;">Nail <span style="color:#D4537E;">Kloset</span></div>
+      <div style="font-size:11px;color:#8A7090;">the crystal ratchapruek</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#534AB7;">รายงานเงินเดือนพนักงาน</div>
+      <div style="font-size:12px;color:#3D2D4A;margin-top:2px;">ประจำเดือน ${periodLabel}</div>
+      <div style="font-size:10px;color:#8A7090;margin-top:1px;">จัดทำ ${now2.getDate()}/${now2.getMonth()+1}/${now2.getFullYear()+543}</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+    ${[
+      {lbl:'พนักงานทั้งหมด', val: staffList.length + ' คน', col:'#534AB7'},
+      {lbl:'ยอดรวมทั้งหมด',  val: '฿' + fmt(grandTotal),   col:'#0F6E56'},
+      {lbl:'เฉลี่ย/คน',      val: '฿' + fmt(grandTotal/(staffList.length||1)), col:'#D4537E'},
+      {lbl:'ยอดเมมเบอร์',    val: '฿' + fmt(memSummary.total), col:'#BA7517'},
+    ].map(k => `
+      <div style="background:#f9f5f8;border-radius:10px;padding:13px;text-align:center;">
+        <div style="font-size:9px;font-weight:700;color:#8A7090;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">${k.lbl}</div>
+        <div style="font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:${k.col};">${k.val}</div>
+      </div>
+    `).join('')}
+  </div>
+
+  <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
+    <thead>
+      <tr style="background:#1A0A12;color:#fff;">
+        <th style="padding:9px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">ชื่อพนักงาน</th>
+        <th style="padding:9px 12px;text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">รายการ</th>
+        <th style="padding:9px 12px;text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">รายรับที่ทำ</th>
+        <th style="padding:9px 12px;text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">เงินเดือน</th>
+        <th style="padding:9px 12px;text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">คอมบริการ</th>
+        <th style="padding:9px 12px;text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">คอมเมม</th>
+        <th style="padding:9px 12px;text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">รวม</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+    <tfoot>
+      <tr style="background:#f0e8f5;font-weight:800;">
+        <td style="padding:10px 12px;border-top:2px solid #1A0A12;" colspan="3">รวมทั้งหมด (${staffList.length} คน)</td>
+        <td style="padding:10px 12px;text-align:right;border-top:2px solid #1A0A12;">฿${fmt(staffList.reduce((s,d)=>s+d.salary,0))}</td>
+        <td style="padding:10px 12px;text-align:right;border-top:2px solid #1A0A12;">฿${fmt(staffList.reduce((s,d)=>s+d.commSvc,0))}</td>
+        <td style="padding:10px 12px;text-align:right;border-top:2px solid #1A0A12;">฿${fmt(staffList.reduce((s,d)=>s+d.commMem,0))}</td>
+        <td style="padding:10px 12px;text-align:right;border-top:2px solid #1A0A12;color:#0F6E56;">฿${fmt(grandTotal)}</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div style="display:flex;justify-content:space-between;margin-top:30px;padding-top:14px;border-top:1.5px solid rgba(212,83,126,0.12);">
+    <div style="font-size:10px;color:#8A7090;">เอกสารจัดทำโดยระบบ Nail Kloset อัตโนมัติ · ประจำเดือน ${periodLabel}</div>
+    <div style="display:flex;gap:24px;">
+      <div style="text-align:center;min-width:130px;">
+        <div style="border-bottom:1px solid #8A7090;height:36px;margin-bottom:4px;"></div>
+        <div style="font-size:10px;color:#8A7090;">ผู้จัดทำ</div>
+      </div>
+      <div style="text-align:center;min-width:130px;">
+        <div style="border-bottom:1px solid #8A7090;height:36px;margin-bottom:4px;"></div>
+        <div style="font-size:10px;color:#8A7090;">ผู้อนุมัติ / เจ้าของร้าน</div>
+      </div>
+    </div>
+  </div>
+  </body></html>`;
+}
+
+// ── Init ────────────────────────────────────────────────
+updateMonthDisplay();
+syncConfigFromParent();
+loadData();
+</script>
+</body>
+</html>
