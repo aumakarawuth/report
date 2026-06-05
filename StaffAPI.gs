@@ -1,18 +1,10 @@
 // ============================================================
-//  StaffAPI.gs — Nail Kloset Staff PWA Endpoints
-//  วางในไฟล์ใหม่ใน Apps Script Project เดียวกับ Code.gs
+//  StaffAPI.gs — Nail Kloset Staff PWA Endpoints  [FIXED]
 //
-//  Actions รองรับ:
-//    GET  getStaffComm          → ค่าคอมพนักงานวันนี้
-//    GET  getStaffTodayRecords  → รายการวันนี้
-//    GET  getStaffSummary       → สรุปยอด (day/week/month)
-//    GET  getMemberByCode       → ค้นหาสมาชิกด้วยรหัส 4 หลัก
-//    GET  getConfig             → ดึง config ร้าน
-//    POST staffSaveRecord       → บันทึกงาน
-//    POST staffTopup            → เติมเงินสมาชิก
-//    POST staffRegister         → สมัครสมาชิกใหม่
-//    POST staffDeduct           → ตัดยอดสมาชิก
-//    POST staffRequestVoid      → ขอลบรายการ (ส่ง admin)
+//  แก้ไข:
+//  1. _staffSaveRecord — เพิ่มการตัดยอดสมาชิกจริง (updateRecordToMember,
+//     updateMemberBalance, writeMemberLog, แจ้ง LINE ลูกค้า)
+//  2. _staffRegister   — แก้ accountType + เบอร์โทรใช้ตัวแปร normalize แล้ว
 // ============================================================
 
 function _corsResponse(data) {
@@ -20,9 +12,6 @@ function _corsResponse(data) {
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
   return output;
-  // หมายเหตุ: GAS ไม่รองรับ setHeader ใน doGet/doPost โดยตรง
-  // วิธีแก้ CORS จริงๆ ต้องผ่าน no-cors fetch + text/plain body
-  // หรือใช้ JSONP — ดูหัวข้อ "CORS workaround" ด้านล่าง
 }
 
 function _getStaffComm(p) {
@@ -68,8 +57,6 @@ function _getStaffComm(p) {
 
 // ============================================================
 // GET — getStaffTodayRecords
-// params: { userId }
-// returns: { ok, records: [ { service, price, payment, time, note } ] }
 // ============================================================
 function _getStaffTodayRecords(p) {
   if (!p.userId) return { ok: false, error: 'userId จำเป็น' };
@@ -77,11 +64,11 @@ function _getStaffTodayRecords(p) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_RECORDS);
   if (!sheet) return { ok: true, records: [] };
 
-  var tz    = Session.getScriptTimeZone();
-  var now   = new Date();
+  var tz       = Session.getScriptTimeZone();
+  var now      = new Date();
   var todayStr = Utilities.formatDate(now, tz, 'yyyy-MM-dd');
-  var data  = sheet.getDataRange().getValues();
-  var records = [];
+  var data     = sheet.getDataRange().getValues();
+  var records  = [];
 
   data.slice(1).forEach(function(row) {
     var rowDate = new Date(row[0]);
@@ -90,7 +77,7 @@ function _getStaffTodayRecords(p) {
     var rowDateStr = Utilities.formatDate(rowDate, tz, 'yyyy-MM-dd');
     if (rowDateStr !== todayStr) return;
 
-    var userId  = String(row[2] || '');
+    var userId = String(row[2] || '');
     if (userId !== String(p.userId)) return;
 
     var status = String(row[9] || '');
@@ -100,7 +87,7 @@ function _getStaffTodayRecords(p) {
     if (price <= 0) return;
 
     records.push({
-      id:      String(row[0]),               // timestamp เป็น id
+      id:      String(row[0]),
       service: String(row[4] || '-'),
       price:   price,
       payment: String(row[6] || 'Cash'),
@@ -110,16 +97,12 @@ function _getStaffTodayRecords(p) {
     });
   });
 
-  // เรียงใหม่สุดก่อน
   records.sort(function(a, b) { return b.id.localeCompare(a.id); });
-
   return { ok: true, records: records };
 }
 
 // ============================================================
 // GET — getStaffSummary
-// params: { userId, period: 'day'|'week'|'month' }
-// returns: { ok, total, comm, count, byService: { [svc]: amount } }
 // ============================================================
 function _getStaffSummary(p) {
   if (!p.userId) return { ok: false, error: 'userId จำเป็น' };
@@ -127,7 +110,7 @@ function _getStaffSummary(p) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_RECORDS);
   if (!sheet) return { ok: true, total: 0, comm: 0, count: 0, byService: {} };
 
-  var now   = new Date();
+  var now    = new Date();
   var start;
   var period = p.period || 'day';
 
@@ -147,7 +130,7 @@ function _getStaffSummary(p) {
     var rowDate = new Date(row[0]);
     if (isNaN(rowDate.getTime()) || rowDate < start) return;
 
-    var userId  = String(row[2] || '');
+    var userId = String(row[2] || '');
     if (userId !== String(p.userId)) return;
 
     var status = String(row[9] || '');
@@ -179,9 +162,14 @@ function _getStaffSummary(p) {
 }
 
 // ============================================================
-// POST — staffSaveRecord
-// body: { userId, staffName, service, price, payment, note }
-// คืนค่า: { ok, recordId }
+// POST — staffSaveRecord  [FIXED]
+//
+// แก้ไข: เพิ่มการตัดยอดสมาชิกจริงเมื่อ payment === 'Member'
+//   - updateRecordToMember  → เปลี่ยน payment เป็น 'Member' + บันทึกเบอร์
+//   - updateMemberBalance   → ลดยอดสมาชิก
+//   - writeMemberLog        → บันทึก Member_Logs
+//   - writeLog              → บันทึก Log_History
+//   - pushToCustomer        → แจ้ง LINE ลูกค้า (ถ้าผูก)
 // ============================================================
 function _staffSaveRecord(body) {
   var userId    = body.userId;
@@ -195,27 +183,82 @@ function _staffSaveRecord(body) {
     return { ok: false, error: 'ข้อมูลไม่ครบถ้วน' };
   }
 
-  // เลือก accountType จาก payment
+  // ── accountType ตามช่องทางชำระ ──────────────────────────
   var accountType;
-  if (payment === 'Credit')   accountType = 'กสิกร';
+  if (payment === 'Credit')        accountType = 'กสิกร';
   else if (payment === 'Transfer') accountType = 'กสิกร';
-  else if (payment === 'Member') accountType = 'ตัดเมมเบอร์';
-  else accountType = 'เงินในร้าน';
+  else if (payment === 'Member')   accountType = 'ตัดเมมเบอร์';
+  else                             accountType = 'เงินในร้าน';
 
-  // ใช้ฟังก์ชัน saveRecord เดิมจาก Code.gs
+  // ── บันทึก record ─────────────────────────────────────────
   saveRecord(userId, staffName, service, price, payment, '-', note, accountType);
-
   var recordId = getLastRecordId(userId);
 
-  Logger.log('[StaffAPI] saveRecord: ' + staffName + ' | ' + service + ' ฿' + price);
+  Logger.log('[StaffAPI] saveRecord: ' + staffName + ' | ' + service + ' ฿' + price + ' | ' + payment);
+
+  // ── ตัดยอดสมาชิก (เมื่อ payment = Member) ────────────────
+  if (payment === 'Member' && body.memberCode) {
+    var memberCode = String(body.memberCode).replace(/'/g, '').trim();
+    var m = getMemberByCode(memberCode);
+
+    if (!m) {
+      // บันทึกรายการไปแล้ว แต่หาสมาชิกไม่เจอ — แจ้ง error กลับ
+      Logger.log('[StaffAPI] member not found: ' + memberCode);
+      return { ok: false, error: 'บันทึกรายการแล้ว แต่ไม่พบสมาชิกรหัส ' + memberCode + ' (record #' + recordId + ')', recordId: recordId };
+    }
+
+    if (m.balance < price) {
+      Logger.log('[StaffAPI] insufficient balance: ' + m.balance + ' < ' + price);
+      return { ok: false, error: 'ยอดเมมเบอร์ไม่พอค่ะ (คงเหลือ ฿' + m.balance.toLocaleString() + ')', recordId: recordId };
+    }
+
+    var oldB = m.balance;
+    var newB = oldB - price;
+
+    // อัปเดต payment + เบอร์ใน Sheet รายการ
+    updateRecordToMember(recordId, m.phone);
+
+    // ลดยอดสมาชิก
+    SpreadsheetApp.getActiveSpreadsheet()
+      .getSheetByName(SHEET_MEMBER)
+      .getRange(m.row, 3)
+      .setValue(newB);
+
+    // บันทึก Member_Logs
+    writeMemberLog(
+      m.phone,
+      'ใช้บริการ (หักยอด #' + recordId + ') — ' + service,
+      '-' + price,
+      oldB, newB,
+      staffName
+    );
+
+    // บันทึก Log_History
+    writeLog('หักยอดสมาชิก (PWA)', staffName,
+      'รหัส: ' + memberCode + ' ยอด: ' + price + ' | ' + service, recordId);
+
+    // แจ้ง LINE ลูกค้า (ถ้าผูก lineId ไว้)
+    if (m.lineId && m.lineId !== '-') {
+      pushToCustomer(m.lineId,
+        getFlexNotifyCut(service, price, newB, oldB, staffName, m.phone)
+      );
+    }
+
+    Logger.log('[StaffAPI] member deducted: ' + memberCode + ' ฿' + price + ' → เหลือ ฿' + newB);
+
+    return {
+      ok:         true,
+      recordId:   recordId,
+      newBalance: newB,
+      memberName: m.name
+    };
+  }
 
   return { ok: true, recordId: recordId };
 }
 
 // ============================================================
 // POST — staffTopup
-// body: { userId, staffName, memberCode, payAmount, payment }
-// คืนค่า: { ok, newBalance, creditAmount, bonusAmount }
 // ============================================================
 function _staffTopup(body) {
   var userId     = body.userId;
@@ -238,21 +281,17 @@ function _staffTopup(body) {
   var now          = new Date();
   var newExp       = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
 
-  // อัปเดต Sheet สมาชิก
   var mSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_MEMBER);
   mSheet.getRange(m.row, 3).setValue(newB);
   mSheet.getRange(m.row, 5).setValue(newExp);
 
-  // บันทึก record
   var accountType = payment === 'Credit' ? 'กสิกร' : payment === 'Transfer' ? 'กสิกร' : 'เงินในร้าน';
   saveRecord(userId, staffName, 'เติมเงินสมาชิก', payAmount, payment, m.phone, '-', accountType);
 
-  // บันทึก log
   writeMemberLog(m.phone,
     'เติมเงิน (จ่าย ฿' + payAmount.toLocaleString() + ' ได้เครดิต ฿' + creditAmount.toLocaleString() + ')',
     '+' + creditAmount, oldB, newB, staffName);
 
-  // แจ้งลูกค้าทาง LINE (ถ้าผูก)
   var expStr = Utilities.formatDate(newExp, 'GMT+7', 'dd/MM/yyyy');
   if (m.lineId && m.lineId !== '-') {
     pushMessagesToCustomer(m.lineId, [
@@ -272,9 +311,11 @@ function _staffTopup(body) {
 }
 
 // ============================================================
-// POST — staffRegister
-// body: { userId, staffName, phone, name, memberCode, amount }
-// คืนค่า: { ok, creditAmount, bonusAmount, memberCode }
+// POST — staffRegister  [FIXED]
+//
+// แก้ไข:
+//  1. accountType ใช้ตัวแปร payment จริง (ไม่ hardcode)
+//  2. saveRecord ใช้ phoneNorm (มี 0 นำหน้า) แทน phone ตัวเดิม
 // ============================================================
 function _staffRegister(body) {
   var userId    = body.userId;
@@ -282,72 +323,68 @@ function _staffRegister(body) {
   var name      = String(body.name || '').trim();
   var code      = String(body.memberCode || '').trim();
   var amount    = parseFloat(body.amount) || 0;
-  var payment    = body.payment || 'Cash';
- 
-  // ── FIX 1: normalize เบอร์ — ดึงเฉพาะตัวเลข แล้วเติม 0 ถ้า 9 หลัก ──
-  var phone = String(body.phone || '').replace(/\D/g, '');
-  if (phone.length === 9) phone = '0' + phone;
- 
-  // ── Validate ──
-  if (!userId)             return { ok: false, error: 'ไม่พบ userId' };
-  if (!staffName)          return { ok: false, error: 'ไม่พบชื่อพนักงาน' };
-  if (!name)               return { ok: false, error: 'กรุณากรอกชื่อสมาชิก' };
-  if (!phone || phone.length < 9) return { ok: false, error: 'เบอร์โทรไม่ถูกต้อง' };
-  if (!code || code.length !== 4) return { ok: false, error: 'รหัสต้องเป็น 4 หลักพอดี' };
-  if (amount <= 0)         return { ok: false, error: 'กรุณาระบุยอดเปิดบัญชี' };
- 
-  // ── เช็คซ้ำ ──
-  if (getMemberByPhone(phone)) return { ok: false, error: 'เบอร์ ' + phone + ' เป็นสมาชิกอยู่แล้วค่ะ' };
-  if (getMemberByCode(code))   return { ok: false, error: 'รหัส ' + code + ' ถูกใช้แล้วค่ะ กรุณาเปลี่ยนรหัส' };
- 
+  var payment   = body.payment || 'Cash';
+
+  // ── normalize เบอร์: เอาเฉพาะตัวเลข แล้วเติม 0 ถ้า 9 หลัก ──
+  var rawPhone  = String(body.phone || '').replace(/\D/g, '');
+  var phoneNorm = rawPhone.length === 9 ? '0' + rawPhone : rawPhone;
+
+  // ── Validate ──────────────────────────────────────────────
+  if (!userId)                        return { ok: false, error: 'ไม่พบ userId' };
+  if (!staffName)                     return { ok: false, error: 'ไม่พบชื่อพนักงาน' };
+  if (!name)                          return { ok: false, error: 'กรุณากรอกชื่อสมาชิก' };
+  if (!phoneNorm || phoneNorm.length < 9)
+                                      return { ok: false, error: 'เบอร์โทรไม่ถูกต้อง' };
+  if (!code || code.length !== 4)     return { ok: false, error: 'รหัสต้องเป็น 4 หลักพอดี' };
+  if (amount <= 0)                    return { ok: false, error: 'กรุณาระบุยอดเปิดบัญชี' };
+
+  // ── เช็คซ้ำ ───────────────────────────────────────────────
+  if (getMemberByPhone(phoneNorm)) return { ok: false, error: 'เบอร์ ' + phoneNorm + ' เป็นสมาชิกอยู่แล้วค่ะ' };
+  if (getMemberByCode(code))       return { ok: false, error: 'รหัส ' + code + ' ถูกใช้แล้วค่ะ กรุณาเปลี่ยนรหัส' };
+
   var creditAmount = calcRegisterCredit(amount);
   var bonusAmount  = getRegisterBonus(amount);
   var now          = new Date();
   var expDate      = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
- 
-  // ── FIX 2: accountType ตามช่องทางชำระจริง ──
-  // var accountType;
-  // if (payment === 'Credit')        accountType = 'กสิกร';
-  // else if (payment === 'Transfer') accountType = 'กสิกร';
-  // else                             accountType = 'เงินในร้าน';
- 
-  // ── บันทึก Sheet สมาชิก (ใช้ phone ที่ normalize แล้ว) ──
+
+  // ── บันทึก Sheet สมาชิก ──────────────────────────────────
   getOrCreateSheet(SHEET_MEMBER, ['เบอร์โทร', 'ชื่อ', 'ยอดเงิน', 'LineID', 'หมดอายุ', 'รหัสสมาชิก'])
-    .appendRow(["'" + phone, name, creditAmount, '-', expDate, "'" + code]);
- 
+    .appendRow(["'" + phoneNorm, name, creditAmount, '-', expDate, "'" + code]);
 
+  // ── [FIXED] accountType ตาม payment จริง ─────────────────
+  var accountType;
+  if (payment === 'Credit')        accountType = 'กสิกร';
+  else if (payment === 'Transfer') accountType = 'กสิกร';
+  else                             accountType = 'เงินในร้าน';
 
-  var accountType = payment === 'Credit' ? 'กสิกร' : payment === 'Transfer' ? 'กสิกร' : 'เงินในร้าน';
-  saveRecord(userId, staffName, 'เปิดเมมเบอร์ใหม่', amount, payment, phone, '-', accountType);
-  // ── FIX 1+2: saveRecord ส่ง phone ที่ normalize + payment + accountType ──
-  // saveRecord(userId, staffName, 'เปิดเมมเบอร์ใหม่', amount, payment, phone, '-', accountType);
- 
-  // ── FIX 3: writeMemberLog (เคยหายไป) ──
+  // ── [FIXED] saveRecord ใช้ phoneNorm ──────────────────────
+  saveRecord(userId, staffName, 'เปิดเมมเบอร์ใหม่', amount, payment, phoneNorm, '-', accountType);
+
+  // ── writeMemberLog ────────────────────────────────────────
   writeMemberLog(
-    phone,
+    phoneNorm,
     'สมัครสมาชิกใหม่ (จ่าย ฿' + amount.toLocaleString() + ' ได้เครดิต ฿' + creditAmount.toLocaleString() + ')',
     '+' + creditAmount,
     0,
     creditAmount,
     staffName
   );
- 
-  Logger.log('[StaffAPI] register: ' + name + ' เบอร์ ' + phone + ' รหัส ' + code + ' เครดิต ฿' + creditAmount + ' (' + payment + ')');
- 
+
+  Logger.log('[StaffAPI] register: ' + name + ' เบอร์ ' + phoneNorm +
+             ' รหัส ' + code + ' เครดิต ฿' + creditAmount + ' (' + payment + ')');
+
   return {
     ok:           true,
     creditAmount: creditAmount,
     bonusAmount:  bonusAmount,
     memberCode:   code,
     memberName:   name,
-    phone:        phone
+    phone:        phoneNorm
   };
 }
 
 // ============================================================
 // POST — staffDeduct
-// body: { userId, staffName, recordId, memberCode, price }
-// คืนค่า: { ok, newBalance } หรือ { ok: false, shortage: true, shortfall }
 // ============================================================
 function _staffDeduct(body) {
   var userId     = body.userId;
@@ -363,18 +400,16 @@ function _staffDeduct(body) {
   var m = getMemberByCode(memberCode);
   if (!m) return { ok: false, error: 'ไม่พบสมาชิกรหัส ' + memberCode };
 
-  // เช็คยอดพอไหม
   if (m.balance < price) {
     return {
-      ok:       false,
-      shortage: true,
-      shortfall: price - m.balance,
-      balance:   m.balance,
+      ok:         false,
+      shortage:   true,
+      shortfall:  price - m.balance,
+      balance:    m.balance,
       memberName: m.name
     };
   }
 
-  // ตัดยอด
   var oldB = m.balance;
   var newB = oldB - price;
 
@@ -383,21 +418,22 @@ function _staffDeduct(body) {
   writeMemberLog(m.phone, 'ใช้บริการ (หักยอด #' + recordId + ')',
     '-' + price, oldB, newB, staffName);
 
-  // แจ้งลูกค้า
+  writeLog('หักยอดสมาชิก (PWA staffDeduct)', staffName,
+    'รหัส: ' + memberCode + ' ยอด: ' + price, recordId);
+
   var rInfo = getRecordInfo(recordId);
   if (m.lineId && m.lineId !== '-') {
-    pushToCustomer(m.lineId, getFlexNotifyCut(rInfo.service, rInfo.price, newB, oldB, staffName, m.phone));
+    pushToCustomer(m.lineId,
+      getFlexNotifyCut(rInfo.service, rInfo.price, newB, oldB, staffName, m.phone)
+    );
   }
 
   Logger.log('[StaffAPI] deduct: ' + memberCode + ' ฿' + price + ' เหลือ ฿' + newB);
-
   return { ok: true, newBalance: newB, memberName: m.name };
 }
 
 // ============================================================
 // POST — staffRequestVoid
-// body: { userId, staffName, recordId }
-// คืนค่า: { ok }
 // ============================================================
 function _staffRequestVoid(body) {
   var userId    = body.userId;
@@ -411,8 +447,8 @@ function _staffRequestVoid(body) {
   var recRow    = parseInt(recordId);
   var curStatus = String(recSheet.getRange(recRow, 10).getValue());
 
-  if (curStatus === 'ยกเลิก')     return { ok: false, error: 'ยกเลิกไปแล้วค่ะ' };
-  if (curStatus === 'รออนุมัติ')  return { ok: false, error: 'ส่งคำขอไปแล้ว รอ Admin อนุมัติค่ะ' };
+  if (curStatus === 'ยกเลิก')    return { ok: false, error: 'ยกเลิกไปแล้วค่ะ' };
+  if (curStatus === 'รออนุมัติ') return { ok: false, error: 'ส่งคำขอไปแล้ว รอ Admin อนุมัติค่ะ' };
 
   recSheet.getRange(recRow, 10).setValue('รออนุมัติ');
   recSheet.getRange(recRow, 12).setValue(staffName);
@@ -424,24 +460,23 @@ function _staffRequestVoid(body) {
   return { ok: true };
 }
 
-
-
+// ============================================================
+// LINE Login (ใช้ Script Properties)
+// ============================================================
 function _lineLogin(p) {
   try {
-    const props     = PropertiesService.getScriptProperties();
-    const channelId = props.getProperty('LINE_CHANNEL_ID');
-    const secret    = props.getProperty('LINE_CHANNEL_SECRET');
- 
+    var props     = PropertiesService.getScriptProperties();
+    var channelId = props.getProperty('LINE_CHANNEL_ID');
+    var secret    = props.getProperty('LINE_CHANNEL_SECRET');
+
     if (!channelId || !secret) {
       return { ok: false, error: 'LINE credentials ยังไม่ได้ตั้งค่าใน Script Properties' };
     }
- 
     if (!p.code || !p.redirectUri) {
       return { ok: false, error: 'Missing code or redirectUri' };
     }
- 
-    /* ── Step 1: แลก code → access_token ── */
-    const tokenRes = UrlFetchApp.fetch('https://api.line.me/oauth2/v2.1/token', {
+
+    var tokenRes = UrlFetchApp.fetch('https://api.line.me/oauth2/v2.1/token', {
       method: 'post',
       contentType: 'application/x-www-form-urlencoded',
       payload: {
@@ -453,178 +488,60 @@ function _lineLogin(p) {
       },
       muteHttpExceptions: true,
     });
- 
-    const tokenData = JSON.parse(tokenRes.getContentText());
+
+    var tokenData = JSON.parse(tokenRes.getContentText());
     if (!tokenData.access_token) {
       Logger.log('LINE token error: ' + JSON.stringify(tokenData));
       return { ok: false, error: tokenData.error_description || 'ไม่สามารถแลก token ได้' };
     }
- 
-    const accessToken = tokenData.access_token;
- 
-    /* ── Step 2: ดึง LINE Profile ── */
-    const profileRes = UrlFetchApp.fetch('https://api.line.me/v2/profile', {
-      headers: { Authorization: 'Bearer ' + accessToken },
+
+    var profileRes = UrlFetchApp.fetch('https://api.line.me/v2/profile', {
+      headers: { Authorization: 'Bearer ' + tokenData.access_token },
       muteHttpExceptions: true,
     });
- 
-    const profile = JSON.parse(profileRes.getContentText());
+
+    var profile = JSON.parse(profileRes.getContentText());
     if (!profile.userId) {
       return { ok: false, error: 'ดึงข้อมูล LINE profile ไม่ได้' };
     }
- 
-    /* ── Step 3: ตรวจสอบว่าเป็นพนักงานที่ลงทะเบียนแล้ว (optional) ──
-       ถ้าต้องการ whitelist ให้ uncomment ส่วนนี้
-       และสร้าง Sheet "พนักงาน" คอลัมน์ A = userId, B = ชื่อ
-    */
-    // const staffSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('พนักงาน');
-    // const staffData  = staffSheet.getDataRange().getValues();
-    // const staffRow   = staffData.find(r => r[0] === profile.userId);
-    // if (!staffRow) {
-    //   return { ok: false, error: 'ไม่พบบัญชีพนักงาน กรุณาติดต่อ Admin' };
-    // }
-    // const displayName = staffRow[1] || profile.displayName; // ใช้ชื่อจาก Sheet ถ้ามี
- 
+
     return {
       ok:          true,
       userId:      profile.userId,
       displayName: profile.displayName,
       pictureUrl:  profile.pictureUrl || '',
     };
- 
-  } catch (e) {
+  } catch(e) {
     Logger.log('_lineLogin error: ' + e.toString());
     return { ok: false, error: 'เกิดข้อผิดพลาด: ' + e.message };
   }
 }
 
-
-
-// บันทึกรายการลง Sheet ตามคอลัมน์จริง
-// A=วันที่, B=เวลา, C=UserID, D=ชื่อพนักงาน, E=บริการ, F=ราคา, G=การชำระ, H=เบอร์ลูกค้า, I=หมายเหตุ
+// ============================================================
+// Helper: บันทึกรายการลง Sheet
+// ============================================================
 function _logTransaction(params) {
   try {
-    const ss       = SpreadsheetApp.getActiveSpreadsheet();
-    const logSheet = ss.getSheetByName('รายการ');
+    var ss       = SpreadsheetApp.getActiveSpreadsheet();
+    var logSheet = ss.getSheetByName('รายการ');
     if (!logSheet) return;
 
-    const now     = new Date();
-    const timeStr = Utilities.formatDate(now, 'Asia/Bangkok', 'H:mm');
+    var now     = new Date();
+    var timeStr = Utilities.formatDate(now, 'Asia/Bangkok', 'H:mm');
 
     logSheet.appendRow([
-      now,                        // A วันที่
-      timeStr,                    // B เวลา
-      params.userId    || '',     // C UserID
-      params.staffName || '',     // D ชื่อพนักงาน
-      params.service   || '',     // E บริการ
-      params.amount    || 0,      // F ราคา
-      params.payment   || 'Cash', // G การชำระ
-      params.phone     || '-',    // H เบอร์ลูกค้า
-      params.note      || '-',    // I หมายเหตุ
+      now,
+      timeStr,
+      params.userId    || '',
+      params.staffName || '',
+      params.service   || '',
+      params.amount    || 0,
+      params.payment   || 'Cash',
+      params.phone     || '-',
+      params.note      || '-',
     ]);
   } catch(e) {
-    console.log('_logTransaction error:', e.message);
-  }
-}
-
-function _staffRegisterMember(p) {
-  try {
-    const ss    = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName('สมาชิก');
-
-    const name       = p.name       || '';
-    const phone      = String(p.phone || '').replace(/\D/g, '');
-    const memberCode = String(p.memberCode || '').padStart(4, '0');
-    const payAmount  = Number(p.amount)  || 0;
-    const payment    = p.payment || 'Cash';
-
-    if (!name || !phone || !memberCode || payAmount <= 0)
-      return { ok: false, error: 'ข้อมูลไม่ครบค่ะ' };
-
-    // เช็ค duplicate รหัส (คอลัมน์ F index 5 = รหัสสมาชิก)
-    const data = sheet.getDataRange().getValues();
-    for (let i = 1; i < data.length; i++) {
-      if (String(data[i][5]).padStart(4,'0') === memberCode)
-        return { ok: false, error: `รหัส ${memberCode} มีอยู่แล้วค่ะ` };
-    }
-
-    const credit = _calcCredit(payAmount);
-    const expiry = new Date();
-    expiry.setFullYear(expiry.getFullYear() + 1);
-
-    // Sheet สมาชิก: เบอร์ | ชื่อ | ยอดเงิน | UserID_Line | วันหมดอายุ | รหัสสมาชิก
-    sheet.appendRow([
-      '\'' + phone,
-      name,
-      credit,
-      '',
-      expiry,
-      memberCode,
-    ]);
-
-    // บันทึกลง Sheet รายการ
-    _logTransaction({
-      userId:    p.userId,
-      staffName: p.staffName,
-      service:   'เปิดเมมเบอร์ใหม่',
-      amount:    payAmount,
-      payment:   payment,
-      phone:     phone,
-      note:      name + ' (รหัส ' + memberCode + ')',
-    });
-
-    return { ok: true, memberCode, name, credit };
-  } catch(e) {
-    return { ok: false, error: e.message };
-  }
-}
-
-function _staffTopupMember(p) {
-  try {
-    const ss    = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName('สมาชิก');
-
-    const memberCode = String(p.memberCode || '').padStart(4, '0');
-    const payAmount  = Number(p.payAmount) || 0;
-    const payment    = p.payment || 'Cash';
-
-    if (!memberCode || payAmount <= 0)
-      return { ok: false, error: 'ข้อมูลไม่ครบค่ะ' };
-
-    const credit = _calcCredit(payAmount);
-
-    // หาแถวสมาชิก
-    const data = sheet.getDataRange().getValues();
-    let rowIndex = -1;
-    let phone    = '-';
-    for (let i = 1; i < data.length; i++) {
-      if (String(data[i][5]).padStart(4,'0') === memberCode) {
-        rowIndex = i + 1; // 1-based
-        phone    = String(data[i][0]).replace("'", '');
-        break;
-      }
-    }
-    if (rowIndex === -1)
-      return { ok: false, error: `ไม่พบสมาชิกรหัส ${memberCode}` };
-
-    // อัปเดตยอดเงิน (คอลัมน์ C = index 2, แต่ sheet เป็น 1-based = คอลัมน์ 3)
-    const currentBalance = Number(data[rowIndex - 1][2]) || 0;
-    sheet.getRange(rowIndex, 3).setValue(currentBalance + credit);
-
-    // บันทึกลง Sheet รายการ
-    _logTransaction({
-      userId:    p.userId,
-      staffName: p.staffName,
-      service:   'เติมเงินสมาชิก',
-      amount:    payAmount,
-      payment:   payment,
-      phone:     phone,
-      note:      p.memberName + ' (รหัส ' + memberCode + ') +' + credit,
-    });
-
-    return { ok: true, newBalance: currentBalance + credit };
-  } catch(e) {
-    return { ok: false, error: e.message };
+    Logger.log('_logTransaction error: ' + e.message);
   }
 }
 
@@ -633,4 +550,90 @@ function _calcCredit(amount) {
   if (amount >= 10000) return 13000;
   if (amount >=  5000) return  6000;
   return amount;
+}
+
+// ── bk_ functions (Booking LIFF) ────────────────────────────
+function _bk_registerCustomer(p) {
+  if (!p.line_user_id) {
+    return { ok: false, error: 'line_user_id จำเป็น' };
+  }
+
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('สมาชิก');
+
+  if (!sheet) {
+    sheet = ss.insertSheet('สมาชิก');
+    var headers = ['เบอร์โทร', 'ชื่อ', 'ยอดเงิน', 'LineID', 'หมดอายุ', 'รหัสสมาชิก'];
+    sheet.appendRow(headers);
+    sheet.getRange(1, 1, 1, headers.length)
+         .setBackground('#FF6B9D').setFontColor('#FFFFFF').setFontWeight('bold');
+  }
+
+  var data = sheet.getDataRange().getValues();
+
+  for (var i = 1; i < data.length; i++) {
+    var storedLineId = String(data[i][3] || '').trim();
+    if (storedLineId === String(p.line_user_id).trim()) {
+      var rawBalance = data[i][2];
+      var rawExpiry  = data[i][4];
+      var memberCode = String(data[i][5] || '').replace(/'/g, '').trim();
+      var expiryStr  = '';
+      if (rawExpiry && rawExpiry !== '') {
+        try {
+          expiryStr = Utilities.formatDate(new Date(rawExpiry), 'Asia/Bangkok', 'dd/MM/yyyy');
+        } catch(e) {
+          expiryStr = String(rawExpiry);
+        }
+      }
+      return {
+        ok: true, isNew: false,
+        member: {
+          name:       String(data[i][1] || p.line_name),
+          balance:    (rawBalance === '-' || rawBalance === '') ? '-' : (parseFloat(rawBalance) || 0),
+          memberCode: memberCode,
+          expiry:     expiryStr
+        }
+      };
+    }
+  }
+
+  var usedCodes = {};
+  for (var j = 1; j < data.length; j++) {
+    var existingCode = parseInt(String(data[j][5] || '').replace(/'/g, '').trim());
+    if (!isNaN(existingCode)) usedCodes[existingCode] = true;
+  }
+
+  var nextNum = 0;
+  while (usedCodes[nextNum]) nextNum++;
+  var newMemberCode = String(nextNum).padStart(4, '0');
+
+  sheet.appendRow(['-', p.line_name || '-', '-', p.line_user_id, '', "'" + newMemberCode]);
+
+  Logger.log('[bk_registerCustomer] สร้างสมาชิกใหม่: ' + p.line_name + ' รหัส ' + newMemberCode);
+
+  return {
+    ok: true, isNew: true,
+    member: { name: p.line_name || '-', balance: '-', memberCode: newMemberCode, expiry: '' }
+  };
+}
+
+function _bk_getStaffs() {
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('พนักงาน');
+  if (!sheet) return { ok: true, staffs: [] };
+
+  var data    = sheet.getDataRange().getValues();
+  var staffs  = [];
+  var numCols = data.length > 0 ? data[0].length : 3;
+
+  for (var i = 1; i < data.length; i++) {
+    var userId = String(data[i][0] || '').trim();
+    var name   = String(data[i][1] || '').trim();
+    if (!userId || !name) continue;
+    if (userId === 'Uccd1338e1f146d4bbc0988bb98d7b124') continue;
+    var image = (numCols >= 4 && data[i][3]) ? String(data[i][3]).trim() : '';
+    staffs.push({ id: userId, name: name, image: image, bio: 'ช่างเล็บ' });
+  }
+
+  return { ok: true, staffs: staffs };
 }
