@@ -4327,9 +4327,16 @@ window.cfgLoad = function() {
 
 
 
-   (function() {
+  // ═══════════════════════════════════════════════════════════════
+// NAIL KLOSET — AI ADVISOR PATCH
+// วิธีใช้: วางโค้ดนี้ต่อจาก </script> สุดท้ายใน index.html
+//          แล้วเพิ่ม <script src="ai-advisor-patch.js"></script>
+//          หรือ copy ทั้งหมดใส่ใน <script> ก่อน </body>
+// ═══════════════════════════════════════════════════════════════
+
+(function() {
   'use strict';
- 
+
   // ── CSS ────────────────────────────────────────────────────
   var style = document.createElement('style');
   style.textContent = `
@@ -4357,7 +4364,7 @@ window.cfgLoad = function() {
       background: #2DCB8E; border: 2px solid #534AB7;
       animation: blink 2s infinite;
     }
- 
+
     /* ── Drawer Overlay ── */
     #ai-drawer-overlay {
       display: none;
@@ -4368,7 +4375,7 @@ window.cfgLoad = function() {
       -webkit-backdrop-filter: blur(3px);
     }
     #ai-drawer-overlay.show { display: block; animation: fadeIn 0.2s ease; }
- 
+
     /* ── Drawer ── */
     #ai-drawer {
       position: fixed;
@@ -4384,7 +4391,7 @@ window.cfgLoad = function() {
       box-shadow: 0 -4px 40px rgba(0,0,0,0.25);
     }
     #ai-drawer.open { transform: translateY(0); }
- 
+
     /* ── Drawer Header ── */
     .ai-drawer-hd {
       background: linear-gradient(135deg, #534AB7, #3A32A0);
@@ -4412,7 +4419,7 @@ window.cfgLoad = function() {
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       flex-shrink: 0; touch-action: manipulation;
     }
- 
+
     /* ── Quick Prompts ── */
     .ai-quick-row {
       display: flex; gap: 7px; padding: 12px 14px 8px;
@@ -4427,7 +4434,7 @@ window.cfgLoad = function() {
       transition: all 0.15s; touch-action: manipulation;
     }
     .ai-quick-btn:active { background: var(--purple); color: #fff; }
- 
+
     /* ── Messages ── */
     #ai-messages {
       flex: 1; overflow-y: auto; padding: 6px 14px;
@@ -4459,7 +4466,7 @@ window.cfgLoad = function() {
       background: linear-gradient(135deg, #534AB7, #3A32A0);
       color: #fff; border-bottom-right-radius: 4px;
     }
- 
+
     /* ── Copy button (for LINE drafts) ── */
     .ai-copy-btn {
       display: inline-flex; align-items: center; gap: 5px;
@@ -4471,7 +4478,7 @@ window.cfgLoad = function() {
       transition: all 0.15s;
     }
     .ai-copy-btn:active { background: rgba(45,203,142,0.2); }
- 
+
     /* ── Thinking indicator ── */
     .ai-thinking {
       display: flex; gap: 4px; align-items: center;
@@ -4488,7 +4495,7 @@ window.cfgLoad = function() {
       0%, 80%, 100% { opacity: 0.2; transform: scale(0.9); }
       40% { opacity: 1; transform: scale(1.15); }
     }
- 
+
     /* ── Input area ── */
     .ai-input-row {
       display: flex; gap: 8px; padding: 10px 14px 0;
@@ -4512,7 +4519,7 @@ window.cfgLoad = function() {
     }
     #ai-send-btn:disabled { opacity: 0.4; }
     #ai-send-btn:active:not(:disabled) { transform: scale(0.93); }
- 
+
     /* ── Dark mode ── */
     [data-theme="dark"] #ai-drawer {
       background: #1F2937;
@@ -4535,7 +4542,7 @@ window.cfgLoad = function() {
     }
   `;
   document.head.appendChild(style);
- 
+
   // ── HTML ──────────────────────────────────────────────────
   var html = `
     <!-- AI FAB -->
@@ -4543,10 +4550,10 @@ window.cfgLoad = function() {
       🤖
       <div class="ai-fab-dot"></div>
     </button>
- 
+
     <!-- Drawer Overlay -->
     <div id="ai-drawer-overlay"></div>
- 
+
     <!-- AI Drawer -->
     <div id="ai-drawer">
       <!-- Header -->
@@ -4558,7 +4565,7 @@ window.cfgLoad = function() {
         </div>
         <button class="ai-drawer-close" id="ai-close-btn">✕</button>
       </div>
- 
+
       <!-- Quick Prompts -->
       <div class="ai-quick-row">
         <button class="ai-quick-btn" data-prompt="ควรทำโปรอะไรเดือนนี้?">🎯 โปรเดือนนี้</button>
@@ -4567,7 +4574,7 @@ window.cfgLoad = function() {
         <button class="ai-quick-btn" data-prompt="สรุปสถานการณ์ร้านตอนนี้ให้ฟัง">📊 สรุปร้าน</button>
         <button class="ai-quick-btn" data-prompt="บริการไหนทำกำไรได้ดีที่สุด?">💅 บริการทำกำไร</button>
       </div>
- 
+
       <!-- Messages -->
       <div id="ai-messages">
         <div class="ai-msg ai">
@@ -4578,7 +4585,7 @@ window.cfgLoad = function() {
           </div>
         </div>
       </div>
- 
+
       <!-- Input -->
       <div class="ai-input-row">
         <textarea id="ai-input" placeholder="ถามอะไรก็ได้เกี่ยวกับร้าน..." rows="1"></textarea>
@@ -4587,12 +4594,12 @@ window.cfgLoad = function() {
     </div>
   `;
   document.body.insertAdjacentHTML('beforeend', html);
- 
+
   // ── State ────────────────────────────────────────────────
   var isOpen = false;
   var isLoading = false;
   var conversationHistory = [];
- 
+
   // ── Open/Close ────────────────────────────────────────────
   function openDrawer() {
     isOpen = true;
@@ -4601,18 +4608,18 @@ window.cfgLoad = function() {
     document.body.style.overflow = 'hidden';
     setTimeout(function() { document.getElementById('ai-input').focus(); }, 300);
   }
- 
+
   function closeDrawer() {
     isOpen = false;
     document.getElementById('ai-drawer-overlay').classList.remove('show');
     document.getElementById('ai-drawer').classList.remove('open');
     document.body.style.overflow = '';
   }
- 
+
   document.getElementById('ai-fab').addEventListener('click', openDrawer);
   document.getElementById('ai-close-btn').addEventListener('click', closeDrawer);
   document.getElementById('ai-drawer-overlay').addEventListener('click', closeDrawer);
- 
+
   // ── Quick prompts ──────────────────────────────────────────
   document.querySelectorAll('.ai-quick-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
@@ -4621,30 +4628,30 @@ window.cfgLoad = function() {
       sendMessage();
     });
   });
- 
+
   // ── Build shop context from live data ──────────────────────
   function buildShopContext() {
     var lines = ['ข้อมูลร้าน Nail Kloset (the crystal ratchapruek):'];
- 
+
     try {
       var now = new Date();
       var thaiMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
- 
+
       if (typeof ALL !== 'undefined' && ALL.length > 0) {
         // ── เดือนนี้ ──
         var monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
         var thisMonth  = ALL.filter(function(r) { return r.date >= monthStart; });
         var svcRecs    = thisMonth.filter(function(r) { return typeof isSvc === 'function' ? isSvc(r) : true; });
         var memRecs    = thisMonth.filter(function(r) { return typeof isMem === 'function' ? isMem(r) : false; });
- 
+
         var totalRev = svcRecs.reduce(function(s, r) { return s + (r.price || 0); }, 0);
         var memRev   = memRecs.reduce(function(s, r) { return s + (r.price || 0); }, 0);
- 
+
         lines.push('\n📅 เดือนนี้ (' + thaiMonths[now.getMonth()] + ' ' + (now.getFullYear()+543) + '):');
         lines.push('- รายรับบริการ: ฿' + totalRev.toLocaleString() + ' (' + svcRecs.length + ' รายการ)');
         lines.push('- ยอดเติมสมาชิก: ฿' + memRev.toLocaleString() + ' (' + memRecs.length + ' รายการ)');
         lines.push('- รายรับรวม: ฿' + (totalRev + memRev).toLocaleString());
- 
+
         // Top services (เดือนนี้)
         var svcMap = {};
         svcRecs.forEach(function(r) {
@@ -4660,7 +4667,7 @@ window.cfgLoad = function() {
             lines.push('  ' + (i+1) + '. ' + e[0] + ' — ฿' + e[1].rev.toLocaleString() + ' (' + e[1].count + ' ครั้ง, เฉลี่ย ฿' + Math.round(e[1].rev/e[1].count).toLocaleString() + '/ครั้ง)');
           });
         }
- 
+
         // Staff performance เดือนนี้
         var staffMap = {};
         svcRecs.forEach(function(r) {
@@ -4675,7 +4682,7 @@ window.cfgLoad = function() {
             return e[0] + ' ฿' + e[1].rev.toLocaleString() + '(' + e[1].count + ' งาน)';
           }).join(', '));
         }
- 
+
         // Payment method breakdown
         var payMap = {};
         thisMonth.forEach(function(r) {
@@ -4685,7 +4692,7 @@ window.cfgLoad = function() {
         var payStr = Object.entries(payMap).sort(function(a,b){return b[1]-a[1];})
           .map(function(e){ return e[0]+' ฿'+e[1].toLocaleString(); }).join(', ');
         if (payStr) lines.push('- วิธีชำระ: ' + payStr);
- 
+
         // ── ย้อนหลัง 3 เดือน ──
         lines.push('\n📊 ย้อนหลัง 3 เดือน:');
         for (var m = 1; m <= 3; m++) {
@@ -4696,7 +4703,7 @@ window.cfgLoad = function() {
           var mMem   = mRecs.filter(function(r) { return typeof isMem === 'function' ? isMem(r) : false; });
           var mRev   = mSvc.reduce(function(s,r){ return s+(r.price||0); }, 0);
           var mMemR  = mMem.reduce(function(s,r){ return s+(r.price||0); }, 0);
- 
+
           // Top service that month
           var mSvcMap = {};
           mSvc.forEach(function(r) {
@@ -4704,12 +4711,12 @@ window.cfgLoad = function() {
             mSvcMap[k] = (mSvcMap[k] || 0) + 1;
           });
           var mTopSvc = Object.entries(mSvcMap).sort(function(a,b){return b[1]-a[1];})[0];
- 
+
           lines.push('- ' + thaiMonths[mStart.getMonth()] + ': รายรับ ฿' + (mRev+mMemR).toLocaleString() +
             ' (' + mSvc.length + ' งาน' +
             (mTopSvc ? ', ฮิตสุด: ' + mTopSvc[0] : '') + ')');
         }
- 
+
         // ── Trend เปรียบเทียบ ──
         var lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         var lastMonthEnd   = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -4721,7 +4728,7 @@ window.cfgLoad = function() {
           lines.push('- เทียบเดือนที่แล้ว: ' + (diff >= 0 ? '▲+' : '▼') + diff + '%');
         }
       }
- 
+
       // ── สมาชิก (เชิงลึก) ──
       if (typeof MEMBERS !== 'undefined') {
         var mems = Object.values(MEMBERS);
@@ -4730,12 +4737,12 @@ window.cfgLoad = function() {
         var activeMem = mems.filter(function(m) { return (m.balance || 0) > 0; }).length;
         var lowBal    = mems.filter(function(m) { return (m.balance || 0) > 0 && (m.balance || 0) < 500; }).length;
         var avgBal    = memCount > 0 ? Math.round(totalBal / memCount) : 0;
- 
+
         lines.push('\n👥 สมาชิก:');
         lines.push('- ทั้งหมด: ' + memCount + ' คน (มีเครดิต: ' + activeMem + ' คน)');
         lines.push('- เครดิตรวม: ฿' + totalBal.toLocaleString() + ' (เฉลี่ย ฿' + avgBal.toLocaleString() + '/คน)');
         if (lowBal > 0) lines.push('- เครดิตใกล้หมด (<500): ' + lowBal + ' คน ⚠️ (โอกาสโปรเติมเงิน)');
- 
+
         // Tier distribution (ถ้ามี tier field)
         var tierMap = {};
         mems.forEach(function(m) {
@@ -4745,7 +4752,7 @@ window.cfgLoad = function() {
           lines.push('- แบ่งตาม tier: ' + Object.entries(tierMap).map(function(e){ return e[0]+' '+e[1]+'คน'; }).join(', '));
         }
       }
- 
+
       // ── Config / Tier Membership ──
       if (typeof TIERS !== 'undefined' && TIERS.length) {
         lines.push('\n💳 Tier เมมเบอร์ปัจจุบัน:');
@@ -4756,14 +4763,14 @@ window.cfgLoad = function() {
         // fallback hardcode จาก Config sheet ที่รู้
         lines.push('\n💳 Tier เมมเบอร์ปัจจุบัน: 5K→6K (+20%), 10K→13K (+30%), 20K→27K (+35%)');
       }
- 
+
       // ── Commission rates ──
       if (typeof COMM !== 'undefined') {
         lines.push('\n💰 ค่าคอม: ' + Object.entries(COMM).map(function(e){
           return e[0] + ' ' + (e[1]*100) + '%';
         }).join(', '));
       }
- 
+
       // ── รายจ่าย (ถ้ามี EXPENSES global) ──
       if (typeof EXPENSES !== 'undefined' && EXPENSES.length > 0) {
         var now2 = new Date();
@@ -4781,33 +4788,33 @@ window.cfgLoad = function() {
           lines.push('- กำไรประมาณ: ฿' + (totalAllRev - totalExp).toLocaleString() + ' (margin ' + Math.round((totalAllRev-totalExp)/totalAllRev*100) + '%)');
         }
       }
- 
+
     } catch(e) {
       lines.push('(ไม่สามารถโหลดข้อมูล live ได้: ' + e.message + ')');
     }
- 
+
     return lines.join('\n');
   }
- 
+
   // ── Append message to UI ──────────────────────────────────
   function appendMessage(role, text, showCopy) {
     var messages = document.getElementById('ai-messages');
     var div = document.createElement('div');
     div.className = 'ai-msg ' + role;
- 
+
     var avatar = role === 'ai' ? '🤖' : '👤';
     var bubble = '<div class="ai-msg-bubble">' + text.replace(/\n/g, '<br>');
     if (showCopy) {
       bubble += '<br><button class="ai-copy-btn" onclick="aiCopyText(this)">📋 Copy สำหรับ LINE</button>';
     }
     bubble += '</div>';
- 
+
     div.innerHTML = '<div class="ai-msg-avatar">' + avatar + '</div>' + bubble;
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
     return div;
   }
- 
+
   function showThinking() {
     var messages = document.getElementById('ai-messages');
     var div = document.createElement('div');
@@ -4817,12 +4824,12 @@ window.cfgLoad = function() {
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
   }
- 
+
   function removeThinking() {
     var el = document.getElementById('ai-thinking-indicator');
     if (el) el.remove();
   }
- 
+
   // ── Copy for LINE ─────────────────────────────────────────
   window.aiCopyText = function(btn) {
     var bubble = btn.closest('.ai-msg-bubble');
@@ -4834,21 +4841,21 @@ window.cfgLoad = function() {
       btn.textContent = '❌ Copy ไม่ได้';
     });
   };
- 
+
   // ── Send message ──────────────────────────────────────────
   function sendMessage() {
     var input = document.getElementById('ai-input');
     var text = input.value.trim();
     if (!text || isLoading) return;
- 
+
     input.value = '';
     input.style.height = 'auto';
     appendMessage('user', text, false);
- 
+
     isLoading = true;
     document.getElementById('ai-send-btn').disabled = true;
     showThinking();
- 
+
     // Build context
     var shopContext = buildShopContext();
     var systemPrompt = [
@@ -4867,33 +4874,44 @@ window.cfgLoad = function() {
       '- สมาชิกเครดิตใกล้หมด → แนะนำโปรเติมเงินได้เลย',
       '- ใส่ emoji ช่วยให้อ่านง่าย แต่ไม่มากเกินไป'
     ].join('\n');
- 
+
     // Add to conversation
     conversationHistory.push({ role: 'user', content: text });
- 
-    var messages = conversationHistory.slice(-6); // keep last 6 turns
- 
-    fetch('https://api.anthropic.com/v1/messages', {
+
+    // Gemini format: system prompt รวมเป็น user/model pair แรก
+    var geminiContents = [];
+    geminiContents.push({ role: 'user', parts: [{ text: systemPrompt + '\n\nเข้าใจแล้วใช่ไหมคะ?' }] });
+    geminiContents.push({ role: 'model', parts: [{ text: 'เข้าใจแล้วค่ะ พร้อมให้คำปรึกษาร้าน Nail Kloset เลยค่ะ 💅' }] });
+
+    // ใส่ประวัติสนทนา 6 turns ล่าสุด
+    conversationHistory.slice(-6).forEach(function(m) {
+      geminiContents.push({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content }]
+      });
+    });
+
+    var GEMINI_API_KEY = 'AQ.Ab8RN6KhlHhTzZWZMoEm0Wv8mvpCI7vJCEEVDWRilM_y6j3rIg'; // ← ใส่ key ที่นี่
+    var GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_API_KEY;
+
+    fetch(GEMINI_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: messages
-      })
+      body: JSON.stringify({ contents: geminiContents })
     })
     .then(function(res) { return res.json(); })
     .then(function(data) {
       removeThinking();
       isLoading = false;
       document.getElementById('ai-send-btn').disabled = false;
- 
-      var reply = (data.content && data.content[0] && data.content[0].text) || 'ขอโทษค่ะ ไม่สามารถตอบได้ในขณะนี้';
-      
+
+      var reply = (data.candidates && data.candidates[0] &&
+                   data.candidates[0].content &&
+                   data.candidates[0].content.parts[0].text)
+                  || 'ขอโทษค่ะ ไม่สามารถตอบได้ในขณะนี้';
+
       conversationHistory.push({ role: 'assistant', content: reply });
- 
-      // Show copy button if it looks like a LINE draft
+
       var isLineDraft = text.toLowerCase().includes('line') || text.includes('broadcast') || text.includes('ข้อความ');
       appendMessage('ai', reply, isLineDraft);
     })
@@ -4901,26 +4919,26 @@ window.cfgLoad = function() {
       removeThinking();
       isLoading = false;
       document.getElementById('ai-send-btn').disabled = false;
-      appendMessage('ai', '❌ เชื่อมต่อไม่ได้ค่ะ กรุณาลองใหม่\n\n(ตรวจสอบ Anthropic API Key ใน GAS Script Properties)', false);
+      appendMessage('ai', '❌ เชื่อมต่อ Gemini ไม่ได้ค่ะ\n\nตรวจสอบ GEMINI_API_KEY ใน ai-advisor-patch.js', false);
     });
   }
- 
+
   // ── Event listeners ───────────────────────────────────────
   document.getElementById('ai-send-btn').addEventListener('click', sendMessage);
- 
+
   document.getElementById('ai-input').addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
   });
- 
+
   // Auto-resize textarea
   document.getElementById('ai-input').addEventListener('input', function() {
     this.style.height = 'auto';
     this.style.height = Math.min(this.scrollHeight, 100) + 'px';
   });
- 
+
   console.log('✅ Nail Kloset AI Advisor loaded');
 })();
 
