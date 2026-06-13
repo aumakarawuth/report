@@ -3572,6 +3572,7 @@ body{
   </div>
 
 </div>
+
 </body>
 </html>`;
 
@@ -4322,6 +4323,606 @@ window.cfgLoad = function() {
   initShopHours();
   loadPromos();
 };
+
+
+
+
+   (function() {
+  'use strict';
+ 
+  // ── CSS ────────────────────────────────────────────────────
+  var style = document.createElement('style');
+  style.textContent = `
+    /* ── AI FAB Button ── */
+    #ai-fab {
+      position: fixed;
+      bottom: calc(70px + max(10px, env(safe-area-inset-bottom)));
+      right: 16px;
+      z-index: 400;
+      width: 52px; height: 52px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #534AB7, #8B52AF);
+      border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 20px rgba(83,74,183,0.45);
+      transition: transform 0.18s, box-shadow 0.18s;
+      touch-action: manipulation;
+    }
+    #ai-fab:active { transform: scale(0.92); box-shadow: 0 2px 10px rgba(83,74,183,0.3); }
+    #ai-fab .ai-fab-dot {
+      position: absolute; top: 7px; right: 7px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #2DCB8E; border: 2px solid #534AB7;
+      animation: blink 2s infinite;
+    }
+ 
+    /* ── Drawer Overlay ── */
+    #ai-drawer-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 450;
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+    }
+    #ai-drawer-overlay.show { display: block; animation: fadeIn 0.2s ease; }
+ 
+    /* ── Drawer ── */
+    #ai-drawer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 460;
+      background: var(--card);
+      border-radius: 24px 24px 0 0;
+      padding: 0 0 max(16px, env(safe-area-inset-bottom));
+      max-height: 85vh;
+      display: flex; flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+      box-shadow: 0 -4px 40px rgba(0,0,0,0.25);
+    }
+    #ai-drawer.open { transform: translateY(0); }
+ 
+    /* ── Drawer Header ── */
+    .ai-drawer-hd {
+      background: linear-gradient(135deg, #534AB7, #3A32A0);
+      border-radius: 24px 24px 0 0;
+      padding: 16px 18px 14px;
+      display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0;
+    }
+    .ai-drawer-hd-icon {
+      width: 38px; height: 38px; border-radius: 12px;
+      background: rgba(255,255,255,0.15);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .ai-drawer-hd-info { flex: 1; }
+    .ai-drawer-hd-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px; font-weight: 700; color: #fff; line-height: 1;
+    }
+    .ai-drawer-hd-sub { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+    .ai-drawer-close {
+      width: 34px; height: 34px; border-radius: 9px;
+      border: none; background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.8); font-size: 17px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; touch-action: manipulation;
+    }
+ 
+    /* ── Quick Prompts ── */
+    .ai-quick-row {
+      display: flex; gap: 7px; padding: 12px 14px 8px;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      flex-shrink: 0;
+    }
+    .ai-quick-btn {
+      padding: 8px 14px; border-radius: 20px; border: 1.5px solid var(--purple-b);
+      background: var(--purple-pale); color: var(--purple);
+      font-family: 'Sarabun', sans-serif; font-size: 12px; font-weight: 700;
+      cursor: pointer; white-space: nowrap; flex-shrink: 0;
+      transition: all 0.15s; touch-action: manipulation;
+    }
+    .ai-quick-btn:active { background: var(--purple); color: #fff; }
+ 
+    /* ── Messages ── */
+    #ai-messages {
+      flex: 1; overflow-y: auto; padding: 6px 14px;
+      -webkit-overflow-scrolling: touch;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .ai-msg {
+      display: flex; gap: 8px; align-items: flex-end;
+      animation: fadeUp 0.22s ease;
+    }
+    .ai-msg.user { flex-direction: row-reverse; }
+    .ai-msg-avatar {
+      width: 28px; height: 28px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; flex-shrink: 0;
+    }
+    .ai-msg.ai .ai-msg-avatar { background: linear-gradient(135deg, #534AB7, #8B52AF); }
+    .ai-msg.user .ai-msg-avatar { background: var(--rose-pale); }
+    .ai-msg-bubble {
+      max-width: 82%; padding: 10px 13px; border-radius: 14px;
+      font-size: 13px; line-height: 1.55; font-family: 'Sarabun', sans-serif;
+    }
+    .ai-msg.ai .ai-msg-bubble {
+      background: var(--purple-pale); color: var(--ink-soft);
+      border-bottom-left-radius: 4px;
+      border: 1.5px solid var(--purple-b);
+    }
+    .ai-msg.user .ai-msg-bubble {
+      background: linear-gradient(135deg, #534AB7, #3A32A0);
+      color: #fff; border-bottom-right-radius: 4px;
+    }
+ 
+    /* ── Copy button (for LINE drafts) ── */
+    .ai-copy-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      margin-top: 8px; padding: 6px 12px; border-radius: 9px;
+      border: 1.5px solid rgba(45,203,142,0.35);
+      background: rgba(45,203,142,0.1);
+      color: #0F6E56; font-family: 'Sarabun', sans-serif;
+      font-size: 11px; font-weight: 700; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .ai-copy-btn:active { background: rgba(45,203,142,0.2); }
+ 
+    /* ── Thinking indicator ── */
+    .ai-thinking {
+      display: flex; gap: 4px; align-items: center;
+      padding: 10px 13px;
+    }
+    .ai-thinking span {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--purple); opacity: 0.4;
+      animation: aiThink 1.2s ease infinite;
+    }
+    .ai-thinking span:nth-child(2) { animation-delay: 0.2s; }
+    .ai-thinking span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes aiThink {
+      0%, 80%, 100% { opacity: 0.2; transform: scale(0.9); }
+      40% { opacity: 1; transform: scale(1.15); }
+    }
+ 
+    /* ── Input area ── */
+    .ai-input-row {
+      display: flex; gap: 8px; padding: 10px 14px 0;
+      flex-shrink: 0;
+    }
+    #ai-input {
+      flex: 1; padding: 11px 14px; border-radius: 12px;
+      border: 1.5px solid var(--border); background: var(--surface);
+      font-family: 'Sarabun', sans-serif; font-size: 14px; color: var(--ink);
+      outline: none; resize: none; min-height: 42px; max-height: 100px;
+      -webkit-appearance: none;
+    }
+    #ai-input:focus { border-color: var(--purple); background: var(--card); }
+    #ai-input::placeholder { color: var(--ink-muted); }
+    #ai-send-btn {
+      width: 42px; height: 42px; border-radius: 12px;
+      border: none; background: linear-gradient(135deg, #534AB7, #3A32A0);
+      color: #fff; font-size: 17px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.15s; touch-action: manipulation;
+    }
+    #ai-send-btn:disabled { opacity: 0.4; }
+    #ai-send-btn:active:not(:disabled) { transform: scale(0.93); }
+ 
+    /* ── Dark mode ── */
+    [data-theme="dark"] #ai-drawer {
+      background: #1F2937;
+      box-shadow: 0 -4px 40px rgba(0,0,0,0.5);
+    }
+    [data-theme="dark"] .ai-msg.ai .ai-msg-bubble {
+      background: #1E1B3A; border-color: rgba(165,160,255,0.25);
+      color: #E5E7EB;
+    }
+    [data-theme="dark"] #ai-input {
+      background: #374151; border-color: rgba(255,255,255,0.12);
+      color: #F9FAFB;
+    }
+    [data-theme="dark"] #ai-input:focus {
+      background: #4B5563; border-color: #A5A0FF;
+    }
+    [data-theme="dark"] .ai-quick-btn {
+      background: #1E1B3A; border-color: rgba(165,160,255,0.3);
+      color: #A5A0FF;
+    }
+  `;
+  document.head.appendChild(style);
+ 
+  // ── HTML ──────────────────────────────────────────────────
+  var html = `
+    <!-- AI FAB -->
+    <button id="ai-fab" title="AI ที่ปรึกษาร้าน">
+      🤖
+      <div class="ai-fab-dot"></div>
+    </button>
+ 
+    <!-- Drawer Overlay -->
+    <div id="ai-drawer-overlay"></div>
+ 
+    <!-- AI Drawer -->
+    <div id="ai-drawer">
+      <!-- Header -->
+      <div class="ai-drawer-hd">
+        <div class="ai-drawer-hd-icon">🤖</div>
+        <div class="ai-drawer-hd-info">
+          <div class="ai-drawer-hd-title">AI ที่ปรึกษา</div>
+          <div class="ai-drawer-hd-sub">วิเคราะห์ข้อมูลร้านและแนะนำกลยุทธ์</div>
+        </div>
+        <button class="ai-drawer-close" id="ai-close-btn">✕</button>
+      </div>
+ 
+      <!-- Quick Prompts -->
+      <div class="ai-quick-row">
+        <button class="ai-quick-btn" data-prompt="ควรทำโปรอะไรเดือนนี้?">🎯 โปรเดือนนี้</button>
+        <button class="ai-quick-btn" data-prompt="ช่วย Draft ข้อความ LINE Broadcast ให้หน่อย">📣 Draft LINE</button>
+        <button class="ai-quick-btn" data-prompt="ราคาและ tier เมมเบอร์ควรปรับยังไง?">💳 Tier เมมเบอร์</button>
+        <button class="ai-quick-btn" data-prompt="สรุปสถานการณ์ร้านตอนนี้ให้ฟัง">📊 สรุปร้าน</button>
+        <button class="ai-quick-btn" data-prompt="บริการไหนทำกำไรได้ดีที่สุด?">💅 บริการทำกำไร</button>
+      </div>
+ 
+      <!-- Messages -->
+      <div id="ai-messages">
+        <div class="ai-msg ai">
+          <div class="ai-msg-avatar">🤖</div>
+          <div class="ai-msg-bubble">
+            สวัสดีค่ะ! ฉันเป็น AI ที่ปรึกษาของ Nail Kloset 💅<br><br>
+            ฉันสามารถช่วยวิเคราะห์ข้อมูลร้าน แนะนำโปรโมชั่น draft ข้อความ LINE หรือตอบคำถามธุรกิจได้เลยนะคะ ถามได้เลยค่ะ ✨
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Input -->
+      <div class="ai-input-row">
+        <textarea id="ai-input" placeholder="ถามอะไรก็ได้เกี่ยวกับร้าน..." rows="1"></textarea>
+        <button id="ai-send-btn">➤</button>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', html);
+ 
+  // ── State ────────────────────────────────────────────────
+  var isOpen = false;
+  var isLoading = false;
+  var conversationHistory = [];
+ 
+  // ── Open/Close ────────────────────────────────────────────
+  function openDrawer() {
+    isOpen = true;
+    document.getElementById('ai-drawer-overlay').classList.add('show');
+    document.getElementById('ai-drawer').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function() { document.getElementById('ai-input').focus(); }, 300);
+  }
+ 
+  function closeDrawer() {
+    isOpen = false;
+    document.getElementById('ai-drawer-overlay').classList.remove('show');
+    document.getElementById('ai-drawer').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+ 
+  document.getElementById('ai-fab').addEventListener('click', openDrawer);
+  document.getElementById('ai-close-btn').addEventListener('click', closeDrawer);
+  document.getElementById('ai-drawer-overlay').addEventListener('click', closeDrawer);
+ 
+  // ── Quick prompts ──────────────────────────────────────────
+  document.querySelectorAll('.ai-quick-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var prompt = this.getAttribute('data-prompt');
+      document.getElementById('ai-input').value = prompt;
+      sendMessage();
+    });
+  });
+ 
+  // ── Build shop context from live data ──────────────────────
+  function buildShopContext() {
+    var lines = ['ข้อมูลร้าน Nail Kloset (the crystal ratchapruek):'];
+ 
+    try {
+      var now = new Date();
+      var thaiMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+ 
+      if (typeof ALL !== 'undefined' && ALL.length > 0) {
+        // ── เดือนนี้ ──
+        var monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        var thisMonth  = ALL.filter(function(r) { return r.date >= monthStart; });
+        var svcRecs    = thisMonth.filter(function(r) { return typeof isSvc === 'function' ? isSvc(r) : true; });
+        var memRecs    = thisMonth.filter(function(r) { return typeof isMem === 'function' ? isMem(r) : false; });
+ 
+        var totalRev = svcRecs.reduce(function(s, r) { return s + (r.price || 0); }, 0);
+        var memRev   = memRecs.reduce(function(s, r) { return s + (r.price || 0); }, 0);
+ 
+        lines.push('\n📅 เดือนนี้ (' + thaiMonths[now.getMonth()] + ' ' + (now.getFullYear()+543) + '):');
+        lines.push('- รายรับบริการ: ฿' + totalRev.toLocaleString() + ' (' + svcRecs.length + ' รายการ)');
+        lines.push('- ยอดเติมสมาชิก: ฿' + memRev.toLocaleString() + ' (' + memRecs.length + ' รายการ)');
+        lines.push('- รายรับรวม: ฿' + (totalRev + memRev).toLocaleString());
+ 
+        // Top services (เดือนนี้)
+        var svcMap = {};
+        svcRecs.forEach(function(r) {
+          var k = r.service || 'ไม่ระบุ';
+          if (!svcMap[k]) svcMap[k] = { rev: 0, count: 0 };
+          svcMap[k].rev += (r.price || 0);
+          svcMap[k].count++;
+        });
+        var topSvcs = Object.entries(svcMap).sort(function(a,b) { return b[1].rev - a[1].rev; }).slice(0, 5);
+        if (topSvcs.length) {
+          lines.push('- บริการขายดีสุด:');
+          topSvcs.forEach(function(e, i) {
+            lines.push('  ' + (i+1) + '. ' + e[0] + ' — ฿' + e[1].rev.toLocaleString() + ' (' + e[1].count + ' ครั้ง, เฉลี่ย ฿' + Math.round(e[1].rev/e[1].count).toLocaleString() + '/ครั้ง)');
+          });
+        }
+ 
+        // Staff performance เดือนนี้
+        var staffMap = {};
+        svcRecs.forEach(function(r) {
+          var s = r.staffName || 'ไม่ระบุ';
+          if (!staffMap[s]) staffMap[s] = { rev: 0, count: 0 };
+          staffMap[s].rev += (r.price || 0);
+          staffMap[s].count++;
+        });
+        var topStaff = Object.entries(staffMap).sort(function(a,b) { return b[1].rev - a[1].rev; });
+        if (topStaff.length) {
+          lines.push('- ยอดพนักงานเดือนนี้: ' + topStaff.map(function(e) {
+            return e[0] + ' ฿' + e[1].rev.toLocaleString() + '(' + e[1].count + ' งาน)';
+          }).join(', '));
+        }
+ 
+        // Payment method breakdown
+        var payMap = {};
+        thisMonth.forEach(function(r) {
+          var p = r.payment || 'อื่นๆ';
+          payMap[p] = (payMap[p] || 0) + (r.price || 0);
+        });
+        var payStr = Object.entries(payMap).sort(function(a,b){return b[1]-a[1];})
+          .map(function(e){ return e[0]+' ฿'+e[1].toLocaleString(); }).join(', ');
+        if (payStr) lines.push('- วิธีชำระ: ' + payStr);
+ 
+        // ── ย้อนหลัง 3 เดือน ──
+        lines.push('\n📊 ย้อนหลัง 3 เดือน:');
+        for (var m = 1; m <= 3; m++) {
+          var mStart = new Date(now.getFullYear(), now.getMonth() - m, 1);
+          var mEnd   = new Date(now.getFullYear(), now.getMonth() - m + 1, 1);
+          var mRecs  = ALL.filter(function(r) { return r.date >= mStart && r.date < mEnd; });
+          var mSvc   = mRecs.filter(function(r) { return typeof isSvc === 'function' ? isSvc(r) : true; });
+          var mMem   = mRecs.filter(function(r) { return typeof isMem === 'function' ? isMem(r) : false; });
+          var mRev   = mSvc.reduce(function(s,r){ return s+(r.price||0); }, 0);
+          var mMemR  = mMem.reduce(function(s,r){ return s+(r.price||0); }, 0);
+ 
+          // Top service that month
+          var mSvcMap = {};
+          mSvc.forEach(function(r) {
+            var k = r.service || 'ไม่ระบุ';
+            mSvcMap[k] = (mSvcMap[k] || 0) + 1;
+          });
+          var mTopSvc = Object.entries(mSvcMap).sort(function(a,b){return b[1]-a[1];})[0];
+ 
+          lines.push('- ' + thaiMonths[mStart.getMonth()] + ': รายรับ ฿' + (mRev+mMemR).toLocaleString() +
+            ' (' + mSvc.length + ' งาน' +
+            (mTopSvc ? ', ฮิตสุด: ' + mTopSvc[0] : '') + ')');
+        }
+ 
+        // ── Trend เปรียบเทียบ ──
+        var lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        var lastMonthEnd   = new Date(now.getFullYear(), now.getMonth(), 1);
+        var lastMonth = ALL.filter(function(r){ return r.date >= lastMonthStart && r.date < lastMonthEnd; });
+        var lastSvc   = lastMonth.filter(function(r){ return typeof isSvc === 'function' ? isSvc(r) : true; });
+        var lastRev   = lastSvc.reduce(function(s,r){ return s+(r.price||0); }, 0);
+        if (lastRev > 0) {
+          var diff = Math.round((totalRev - lastRev) / lastRev * 100);
+          lines.push('- เทียบเดือนที่แล้ว: ' + (diff >= 0 ? '▲+' : '▼') + diff + '%');
+        }
+      }
+ 
+      // ── สมาชิก (เชิงลึก) ──
+      if (typeof MEMBERS !== 'undefined') {
+        var mems = Object.values(MEMBERS);
+        var memCount  = mems.length;
+        var totalBal  = mems.reduce(function(s, m) { return s + (m.balance || 0); }, 0);
+        var activeMem = mems.filter(function(m) { return (m.balance || 0) > 0; }).length;
+        var lowBal    = mems.filter(function(m) { return (m.balance || 0) > 0 && (m.balance || 0) < 500; }).length;
+        var avgBal    = memCount > 0 ? Math.round(totalBal / memCount) : 0;
+ 
+        lines.push('\n👥 สมาชิก:');
+        lines.push('- ทั้งหมด: ' + memCount + ' คน (มีเครดิต: ' + activeMem + ' คน)');
+        lines.push('- เครดิตรวม: ฿' + totalBal.toLocaleString() + ' (เฉลี่ย ฿' + avgBal.toLocaleString() + '/คน)');
+        if (lowBal > 0) lines.push('- เครดิตใกล้หมด (<500): ' + lowBal + ' คน ⚠️ (โอกาสโปรเติมเงิน)');
+ 
+        // Tier distribution (ถ้ามี tier field)
+        var tierMap = {};
+        mems.forEach(function(m) {
+          if (m.tier) { tierMap[m.tier] = (tierMap[m.tier] || 0) + 1; }
+        });
+        if (Object.keys(tierMap).length > 0) {
+          lines.push('- แบ่งตาม tier: ' + Object.entries(tierMap).map(function(e){ return e[0]+' '+e[1]+'คน'; }).join(', '));
+        }
+      }
+ 
+      // ── Config / Tier Membership ──
+      if (typeof TIERS !== 'undefined' && TIERS.length) {
+        lines.push('\n💳 Tier เมมเบอร์ปัจจุบัน:');
+        TIERS.forEach(function(t) {
+          lines.push('- ' + t.name + ': เติม ฿' + (t.price||'').toLocaleString() + ' → ได้ ฿' + (t.bonus||'').toLocaleString() + ' (โบนัส ' + Math.round(((t.bonus-t.price)/t.price)*100) + '%)');
+        });
+      } else {
+        // fallback hardcode จาก Config sheet ที่รู้
+        lines.push('\n💳 Tier เมมเบอร์ปัจจุบัน: 5K→6K (+20%), 10K→13K (+30%), 20K→27K (+35%)');
+      }
+ 
+      // ── Commission rates ──
+      if (typeof COMM !== 'undefined') {
+        lines.push('\n💰 ค่าคอม: ' + Object.entries(COMM).map(function(e){
+          return e[0] + ' ' + (e[1]*100) + '%';
+        }).join(', '));
+      }
+ 
+      // ── รายจ่าย (ถ้ามี EXPENSES global) ──
+      if (typeof EXPENSES !== 'undefined' && EXPENSES.length > 0) {
+        var now2 = new Date();
+        var expThisMonth = EXPENSES.filter(function(e) {
+          var d = new Date(e.date);
+          return d.getMonth() === now2.getMonth() && d.getFullYear() === now2.getFullYear();
+        });
+        var totalExp = expThisMonth.reduce(function(s,e){ return s+(e.amount||0); }, 0);
+        var totalAllRev = (typeof ALL !== 'undefined') ? ALL.filter(function(r){
+          var d = r.date;
+          return d >= new Date(now2.getFullYear(), now2.getMonth(), 1);
+        }).reduce(function(s,r){ return s+(r.price||0); }, 0) : 0;
+        lines.push('\n📉 รายจ่ายเดือนนี้: ฿' + totalExp.toLocaleString());
+        if (totalAllRev > 0) {
+          lines.push('- กำไรประมาณ: ฿' + (totalAllRev - totalExp).toLocaleString() + ' (margin ' + Math.round((totalAllRev-totalExp)/totalAllRev*100) + '%)');
+        }
+      }
+ 
+    } catch(e) {
+      lines.push('(ไม่สามารถโหลดข้อมูล live ได้: ' + e.message + ')');
+    }
+ 
+    return lines.join('\n');
+  }
+ 
+  // ── Append message to UI ──────────────────────────────────
+  function appendMessage(role, text, showCopy) {
+    var messages = document.getElementById('ai-messages');
+    var div = document.createElement('div');
+    div.className = 'ai-msg ' + role;
+ 
+    var avatar = role === 'ai' ? '🤖' : '👤';
+    var bubble = '<div class="ai-msg-bubble">' + text.replace(/\n/g, '<br>');
+    if (showCopy) {
+      bubble += '<br><button class="ai-copy-btn" onclick="aiCopyText(this)">📋 Copy สำหรับ LINE</button>';
+    }
+    bubble += '</div>';
+ 
+    div.innerHTML = '<div class="ai-msg-avatar">' + avatar + '</div>' + bubble;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return div;
+  }
+ 
+  function showThinking() {
+    var messages = document.getElementById('ai-messages');
+    var div = document.createElement('div');
+    div.className = 'ai-msg ai';
+    div.id = 'ai-thinking-indicator';
+    div.innerHTML = '<div class="ai-msg-avatar">🤖</div><div class="ai-msg-bubble"><div class="ai-thinking"><span></span><span></span><span></span></div></div>';
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+  }
+ 
+  function removeThinking() {
+    var el = document.getElementById('ai-thinking-indicator');
+    if (el) el.remove();
+  }
+ 
+  // ── Copy for LINE ─────────────────────────────────────────
+  window.aiCopyText = function(btn) {
+    var bubble = btn.closest('.ai-msg-bubble');
+    var text = bubble.innerText.replace('📋 Copy สำหรับ LINE', '').trim();
+    navigator.clipboard.writeText(text).then(function() {
+      btn.textContent = '✅ Copied!';
+      setTimeout(function() { btn.textContent = '📋 Copy สำหรับ LINE'; }, 2000);
+    }).catch(function() {
+      btn.textContent = '❌ Copy ไม่ได้';
+    });
+  };
+ 
+  // ── Send message ──────────────────────────────────────────
+  function sendMessage() {
+    var input = document.getElementById('ai-input');
+    var text = input.value.trim();
+    if (!text || isLoading) return;
+ 
+    input.value = '';
+    input.style.height = 'auto';
+    appendMessage('user', text, false);
+ 
+    isLoading = true;
+    document.getElementById('ai-send-btn').disabled = true;
+    showThinking();
+ 
+    // Build context
+    var shopContext = buildShopContext();
+    var systemPrompt = [
+      'คุณเป็นที่ปรึกษาธุรกิจของร้านทำเล็บและบิวตี้ Nail Kloset สาขา the crystal ratchapruek กรุงเทพฯ',
+      '',
+      'ข้อมูลร้านล่าสุด (real-time):',
+      shopContext,
+      '',
+      'แนวทางการตอบ:',
+      '- ตอบภาษาไทย กระชับ ตรงประเด็น ให้คำแนะนำที่ปฏิบัติได้จริง',
+      '- วิเคราะห์จากตัวเลขจริงเสมอ อย่าเดา',
+      '- ถามเรื่องโปร → ดูบริการที่ขายดี/ต่ำ + เทรนด์ย้อนหลัง แล้วแนะนำโปรที่ boost ยอดได้จริง',
+      '- ถามเรื่อง tier → เปรียบเทียบกับ tier ปัจจุบัน แนะนำโบนัสที่จูงใจแต่ไม่ขาดทุน',
+      '- ขอ Draft LINE → เขียนสั้น ดึงดูด ≤5 บรรทัด เหมาะกับกลุ่มสมาชิกร้าน',
+      '- ถามกำไร/รายจ่าย → ใช้ตัวเลขที่มี ถ้าไม่มีรายจ่ายให้บอกว่าคำนวณ net ไม่ได้',
+      '- สมาชิกเครดิตใกล้หมด → แนะนำโปรเติมเงินได้เลย',
+      '- ใส่ emoji ช่วยให้อ่านง่าย แต่ไม่มากเกินไป'
+    ].join('\n');
+ 
+    // Add to conversation
+    conversationHistory.push({ role: 'user', content: text });
+ 
+    var messages = conversationHistory.slice(-6); // keep last 6 turns
+ 
+    fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: messages
+      })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      removeThinking();
+      isLoading = false;
+      document.getElementById('ai-send-btn').disabled = false;
+ 
+      var reply = (data.content && data.content[0] && data.content[0].text) || 'ขอโทษค่ะ ไม่สามารถตอบได้ในขณะนี้';
+      
+      conversationHistory.push({ role: 'assistant', content: reply });
+ 
+      // Show copy button if it looks like a LINE draft
+      var isLineDraft = text.toLowerCase().includes('line') || text.includes('broadcast') || text.includes('ข้อความ');
+      appendMessage('ai', reply, isLineDraft);
+    })
+    .catch(function(err) {
+      removeThinking();
+      isLoading = false;
+      document.getElementById('ai-send-btn').disabled = false;
+      appendMessage('ai', '❌ เชื่อมต่อไม่ได้ค่ะ กรุณาลองใหม่\n\n(ตรวจสอบ Anthropic API Key ใน GAS Script Properties)', false);
+    });
+  }
+ 
+  // ── Event listeners ───────────────────────────────────────
+  document.getElementById('ai-send-btn').addEventListener('click', sendMessage);
+ 
+  document.getElementById('ai-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+ 
+  // Auto-resize textarea
+  document.getElementById('ai-input').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+  });
+ 
+  console.log('✅ Nail Kloset AI Advisor loaded');
+})();
 
  
 
