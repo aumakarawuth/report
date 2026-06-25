@@ -3659,11 +3659,46 @@ function loadExtraExpensesFromSheet(y,m){
   if(container._inputListener)container.removeEventListener('input',container._inputListener);
   container._inputListener=function(){_saveLocalExtraExpenses(y,m);};
   container.addEventListener('input',container._inputListener);
-  const hasCached=_loadLocalExtraExpenses(y,m);
-  if(hasCached)return;
-  const periodKey=y+'-'+String(m+1).padStart(2,'0');
-  fetch(GAS_URL+'?action=getExpenseData&periodKey='+periodKey,{cache:'no-cache'}).then(function(r){return r.json();}).then(function(result){if(!result||result.error||!Object.keys(result.byCategory||{}).length){_saveLocalExtraExpenses(y,m);return;}Object.keys(result.byCategory).forEach(function(cat){const amt=Number(result.byCategory[cat])||0;if(!amt)return;const id=Date.now()+'_'+Math.random().toString(36).slice(2);const div=document.createElement('div');div.className='extra-item';div.setAttribute('data-from-sheet','1');div.id='extra-'+id;div.innerHTML='<input class="name-in" type="text" value="'+cat+'" readonly style="background:rgba(232,69,122,0.06);color:var(--ink-soft);cursor:default"><input class="amt-in" type="number" value="'+amt+'" style="background:rgba(232,69,122,0.06)"><button class="del-btn" onclick="removeExtra(\''+id+'\')">✕</button>';container.appendChild(div);});_saveLocalExtraExpenses(y,m);}).catch(function(e){console.error('[loadExtraExpenses fetch]',e);});}
 
+  // เก็บแถวที่ผู้ใช้เพิ่มเอง (ไม่ใช่จาก sheet) ไว้ก่อน ไม่ลบ
+  var manualCached = [];
+  try{
+    var raw = localStorage.getItem(_extraKey(y,m));
+    if(raw){
+      var items = JSON.parse(raw);
+      manualCached = (items||[]).filter(function(it){ return it.fromSheet !== '1'; });
+    }
+  }catch(e){}
+
+  const periodKey=y+'-'+String(m+1).padStart(2,'0');
+  fetch(GAS_URL+'?action=getExpenseData&periodKey='+periodKey,{cache:'no-cache'})
+    .then(function(r){return r.json();})
+    .then(function(result){
+      if(result && !result.error && Object.keys(result.byCategory||{}).length){
+        Object.keys(result.byCategory).forEach(function(cat){
+          const amt=Number(result.byCategory[cat])||0;
+          if(!amt)return;
+          const id=Date.now()+'_'+Math.random().toString(36).slice(2);
+          const div=document.createElement('div');
+          div.className='extra-item';
+          div.setAttribute('data-from-sheet','1');
+          div.id='extra-'+id;
+          div.innerHTML='<input class="name-in" type="text" value="'+cat+'" readonly style="background:rgba(232,69,122,0.06);color:var(--ink-soft);cursor:default"><input class="amt-in" type="number" value="'+amt+'" style="background:rgba(232,69,122,0.06)"><button class="del-btn" onclick="removeExtra(\''+id+'\')">✕</button>';
+          container.appendChild(div);
+        });
+      }
+      // ใส่แถวที่ผู้ใช้เพิ่มเองกลับเข้าไปต่อท้าย
+      manualCached.forEach(function(item){
+        const id=Date.now()+'_'+Math.random().toString(36).slice(2);
+        const div=document.createElement('div');
+        div.className='extra-item';
+        div.id='extra-'+id;
+        div.innerHTML='<input class="name-in" type="text" placeholder="ชื่อค่าใช้จ่าย..." value="'+(item.name||'')+'"><input class="amt-in" type="number" placeholder="0" min="0" step="0.01" value="'+(item.amt||0)+'"><button class="del-btn" onclick="removeExtra(\''+id+'\')">✕</button>';
+        container.appendChild(div);
+      });
+      _saveLocalExtraExpenses(y,m);
+    }).catch(function(e){console.error('[loadExtraExpenses fetch]',e);});
+}
 // PIN
 const PIN_DEFAULT='1436';let pinBuffer='',pinCallback=null;
 function requirePin(targetPage,btn){pinBuffer='';pinCallback=()=>{if(btn&&btn.isConnected){goPage(targetPage,btn);}else{sheetGo(targetPage);}};updatePinDots();document.getElementById('pin-error-msg').textContent='';document.getElementById('pin-sub-txt').textContent={settings:'กรอก PIN เพื่อเข้าหน้าตั้งค่า',summary:'กรอก PIN เพื่อเข้าหน้าสรุปกำไร',payroll:'กรอก PIN เพื่อเข้าหน้าเงินเดือน'}[targetPage]||'กรอก PIN เพื่อเข้าถึง';document.getElementById('pin-modal-bg').classList.add('show');}
